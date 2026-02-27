@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { useNavigate } from 'react-router-dom'
 import ConfirmDialog from '../components/ConfirmDialog'
 import MarkdownRenderer from '../components/MarkdownRenderer'
+import LocalAvatar from '../components/LocalAvatar'
 import type { SyzygyPost, SyzygyReply } from '../types'
 import {
   createSyzygyPost,
@@ -707,10 +708,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
         <>
           <section className="profile-header-card" aria-label="TA主页头部">
             <div className="profile-cover-banner" />
-            <div className="profile-avatar-surrogate" aria-hidden="true">
-              <span className="profile-avatar-letter">S</span>
-              <span className="profile-avatar-accent">❤</span>
-            </div>
+            <LocalAvatar storageKey="syzygy-homepage-avatar" alt="TA的主页头像" />
             <div className="profile-meta">
               <h2 className="profile-title">TA的主页</h2>
               <p className="profile-bio">记录TA的日常观察</p>
@@ -720,7 +718,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
           <section className="snacks-composer">
             <textarea
               rows={2}
-              placeholder="写点今天的观察…"
+              placeholder="写些什么吧！"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               maxLength={maxLength + 10}
@@ -735,7 +733,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
                   disabled={generatingPost || publishing}
                   title="生成TA动态"
                 >
-                  {generatingPost ? '🤖 生成中…' : '🤖'}
+                  {generatingPost ? '▶️ 生成中…' : '▶️'}
                 </button>
                 <button type="button" className="primary" onClick={handlePublish} disabled={publishDisabled}>
                   {publishing ? '发布中…' : '发布'}
@@ -793,7 +791,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
                       disabled={generatingPostId !== null}
                       title="生成 AI 回复"
                     >
-                      🐹
+                      ▶️
                     </button>
                     <button type="button" className="ghost" onClick={() => expandAndFocusReply(post.id)}>
                       回复
