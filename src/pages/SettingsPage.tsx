@@ -1171,7 +1171,7 @@ const SettingsPage = ({
         >
           <span className="section-title">
             <span className="section-icon" aria-hidden="true">🍪</span>
-            <h2 className="ui-title">Snack Feed</h2>
+            <h2 className="ui-title">我的主页</h2>
             <p>仅用于我的主页；基础系统提示词保持不变。</p>
           </span>
           <span className="collapse-indicator" aria-hidden="true">›</span>
@@ -1221,7 +1221,7 @@ const SettingsPage = ({
           <div className="accordion-content">
             <div className="section-title">
               <h2 className="ui-title">发帖风格（TA Post Prompt）</h2>
-              <p>控制 🤖 发帖按钮的文风与输出约束。</p>
+              <p>控制发帖按钮的文风与输出约束。</p>
             </div>
             <textarea
               className="system-prompt"
@@ -1245,7 +1245,7 @@ const SettingsPage = ({
 
             <div className="section-title nested-prompt-title">
               <h2 className="ui-title">回复风格（TA Reply Prompt）</h2>
-              <p>控制 🤖 AI 回复的语气与长度。</p>
+              <p>控制AI回复的语气与长度。</p>
             </div>
             <textarea
               className="system-prompt"
