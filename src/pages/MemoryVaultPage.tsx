@@ -217,7 +217,7 @@ const MemoryVaultPage = ({
         <button type="button" className="ghost" onClick={() => navigate(-1)}>
           返回
         </button>
-        <h1 className="ui-title">囤囤库</h1>
+        <h1 className="ui-title">记忆库</h1>
         <button type="button" className="ghost" onClick={() => navigate('/')}>
           聊天
         </button>
@@ -302,7 +302,7 @@ const MemoryVaultPage = ({
 
       <section className="memory-section memory-section--pending">
         <div className="memory-section-heading">
-          <h2 className="ui-title">Syzygy的提取碎片 (Syzygy's Suggestions)</h2>
+          <h2 className="ui-title">提取碎片</h2>
         </div>
         <div className="memory-control-bar">
           <div className="memory-toggle-group">

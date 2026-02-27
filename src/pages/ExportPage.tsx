@@ -184,7 +184,7 @@ const renderMarkdown = (
   }
 
   if (modules.snacks) {
-    lines.push('## 零食罐罐')
+    lines.push('## 我的主页')
     const repliesByPost = new Map<string, SnackReplyRow[]>()
     data.snackReplies.forEach((reply) => {
       const list = repliesByPost.get(reply.post_id) ?? []
@@ -209,7 +209,7 @@ const renderMarkdown = (
   }
 
   if (modules.syzygy) {
-    lines.push('## 仓鼠饲养日志')
+    lines.push('## TA的主页')
     const repliesByPost = new Map<string, SyzygyReplyRow[]>()
     data.syzygyReplies.forEach((reply) => {
       const list = repliesByPost.get(reply.post_id) ?? []
@@ -229,12 +229,12 @@ const renderMarkdown = (
       lines.push('')
     })
     if (data.syzygyPosts.length === 0) {
-      lines.push('暂无仓鼠饲养日志', '')
+      lines.push('暂无TA的主页记录', '')
     }
   }
 
   if (modules.memory) {
-    lines.push('## 囤囤库')
+    lines.push('## 记忆库')
     const confirmed = data.memoryEntries.filter((entry) => entry.status === 'confirmed')
     const pending = data.memoryEntries.filter((entry) => entry.status === 'pending')
     lines.push('### Confirmed')
@@ -504,15 +504,15 @@ const ExportPage = ({ user }: { user: User | null }) => {
           </label>
           <label>
             <input type="checkbox" checked={modules.snacks} onChange={() => toggleModule('snacks')} />
-            零食罐罐（snack_posts + snack_replies）
+            我的主页（snack_posts + snack_replies）
           </label>
           <label>
             <input type="checkbox" checked={modules.syzygy} onChange={() => toggleModule('syzygy')} />
-            仓鼠饲养日志（syzygy_posts + syzygy_replies）
+            TA的主页（syzygy_posts + syzygy_replies）
           </label>
           <label>
             <input type="checkbox" checked={modules.memory} onChange={() => toggleModule('memory')} />
-            囤囤库（memory_entries）
+            记忆库（memory_entries）
           </label>
           <label>
             <input type="checkbox" checked={modules.checkins} onChange={() => toggleModule('checkins')} />
@@ -521,7 +521,7 @@ const ExportPage = ({ user }: { user: User | null }) => {
         </div>
 
         <p className="export-note">可一次性打包多个模块，导出后将自动下载到本地设备。</p>
-        <p className="export-signoff">Your memories are safely packed by Syzygy. 🎀</p>
+        <p className="export-signoff">你的记忆已安全打包。</p>
 
         {warning ? <p className="tips">{warning}</p> : null}
         {error ? <p className="error">{error}</p> : null}

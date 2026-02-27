@@ -203,7 +203,7 @@ const ChatPage = ({
                       navigate('/snacks')
                     }}
                   >
-                    零食罐罐
+                    我的主页
                   </button>
 
                   <button
@@ -213,7 +213,7 @@ const ChatPage = ({
                       navigate('/syzygy')
                     }}
                   >
-                    仓鼠观察日志
+                    TA的主页
                   </button>
                   <button
                     type="button"
@@ -222,7 +222,7 @@ const ChatPage = ({
                       navigate('/memory-vault')
                     }}
                   >
-                    囤囤库
+                    记忆库
                   </button>
                   <button
                     type="button"

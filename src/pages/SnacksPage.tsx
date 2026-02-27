@@ -527,13 +527,13 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
         messagesPayload.push({
           role: 'user',
           content: `最近回复：\n${lastReplies
-            .map((reply) => `${reply.role === 'assistant' ? 'Syzygy' : '串串'}：${reply.content}`)
+            .map((reply) => `${reply.role === 'assistant' ? 'TA' : '我'}：${reply.content}`)
             .join('\n')}`,
         })
       }
       const latestUserComment = [...existingReplies].reverse().find((reply) => reply.role === 'user')
       if (latestUserComment) {
-        messagesPayload.push({ role: 'user', content: `串串最新留言：${latestUserComment.content}` })
+        messagesPayload.push({ role: 'user', content: `我的最新留言：${latestUserComment.content}` })
       }
 
       const result = await requestOpenRouter(messagesPayload)
@@ -577,7 +577,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
         <button type="button" className="ghost" onClick={() => navigate('/')}>
           返回聊天
         </button>
-        <h1 className="ui-title">{showTrash ? '零食回收站' : '零食罐罐区'}</h1>
+        <h1 className="ui-title">{showTrash ? '我的主页回收站' : '我的主页'}</h1>
         <button
           type="button"
           className="ghost compact-action"
@@ -655,15 +655,15 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
         </main>
       ) : (
         <>
-          <section className="profile-header-card" aria-label="串串主页头部">
+          <section className="profile-header-card" aria-label="我的主页头部">
             <div className="profile-cover-banner" />
             <div className="profile-avatar-surrogate" aria-hidden="true">
               <span className="profile-avatar-letter">C</span>
               <span className="profile-avatar-accent">🐾</span>
             </div>
             <div className="profile-meta">
-              <h2 className="profile-title">串串的零食罐罐</h2>
-              <p className="profile-bio">专属于某只小仓鼠的加餐记录</p>
+              <h2 className="profile-title">我的主页</h2>
+              <p className="profile-bio">记录我的日常片段</p>
             </div>
           </section>
 
@@ -699,7 +699,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
               return (
                 <article key={post.id} className="post-card">
                   <div className="post-header">
-                    <span className="feed-badge">串串动态</span>
+                    <span className="feed-badge">我的动态</span>
                   </div>
                   <p className="post-content">{post.content}</p>
                   <div className="post-footer">
@@ -744,11 +744,11 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
                             <div className="reply-role">
                               {reply.role === 'assistant' ? (
                                 <>
-                                  <span>Syzygy</span>
+                                  <span>TA</span>
                                   <span className="reply-model-badge">{reply.meta?.model || '未知模型'}</span>
                                 </>
                               ) : (
-                                <span>串串</span>
+                                <span>我</span>
                               )}
                             </div>
                             {reply.role === 'assistant' ? (

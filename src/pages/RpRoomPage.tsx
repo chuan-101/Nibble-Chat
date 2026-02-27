@@ -103,7 +103,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
-  const [playerDisplayNameInput, setPlayerDisplayNameInput] = useState('串串')
+  const [playerDisplayNameInput, setPlayerDisplayNameInput] = useState('我')
   const [playerAvatarUrlInput, setPlayerAvatarUrlInput] = useState('')
   const [worldbookTextInput, setWorldbookTextInput] = useState('')
   const [keepRecentMessagesInput, setKeepRecentMessagesInput] = useState(String(RP_ROOM_KEEP_RECENT_MESSAGES_DEFAULT))
@@ -119,7 +119,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
   const [deletingNpcId, setDeletingNpcId] = useState<string | null>(null)
   const [selectedNpcId, setSelectedNpcId] = useState('')
   const { enabledModelIds, enabledModelOptions } = useEnabledModels(user)
-  const playerName = room?.playerDisplayName?.trim() ? room.playerDisplayName.trim() : '串串'
+  const playerName = room?.playerDisplayName?.trim() ? room.playerDisplayName.trim() : '我'
   const isDashboardPage = mode === 'dashboard'
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const timelineBottomRef = useRef<HTMLDivElement | null>(null)
@@ -191,7 +191,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
     if (!room) {
       return
     }
-    setPlayerDisplayNameInput(room.playerDisplayName?.trim() || '串串')
+    setPlayerDisplayNameInput(room.playerDisplayName?.trim() || '我')
     setPlayerAvatarUrlInput(room.playerAvatarUrl ?? '')
     setWorldbookTextInput(room.worldbookText ?? '')
     setKeepRecentMessagesInput(String(readRoomKeepRecentMessages(room.rpKeepRecentMessages)))
@@ -700,7 +700,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
     setSavingRoomSettings(true)
     setError(null)
     setNotice(null)
-    const normalizedDisplayName = playerDisplayNameInput.trim() || '串串'
+    const normalizedDisplayName = playerDisplayNameInput.trim() || '我'
     const normalizedAvatar = playerAvatarUrlInput.trim()
     const parsedKeepRecentMessages = Number.parseInt(keepRecentMessagesInput, 10)
     const parsedContextTokenLimit = Number.parseInt(contextTokenLimitInput, 10)
@@ -1003,7 +1003,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
             type="text"
             value={playerDisplayNameInput}
             onChange={(event) => setPlayerDisplayNameInput(event.target.value)}
-            placeholder="串串"
+            placeholder="我"
           />
         </label>
         <label>

@@ -225,12 +225,12 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
       {
         id: "memory",
         defaultEmoji: "🧠",
-        label: "囤囤库",
+        label: "记忆库",
         route: "/memory-vault",
       },
-      { id: "snacks", defaultEmoji: "🍪", label: "零食罐罐", route: "/snacks" },
-      { id: "syzygy", defaultEmoji: "📘", label: "仓鼠日志", route: "/syzygy" },
-      { id: "rp", defaultEmoji: "🎭", label: "RP 房间", route: "/rp" },
+      { id: "snacks", defaultEmoji: "🍪", label: "我的主页", route: "/snacks" },
+      { id: "syzygy", defaultEmoji: "📘", label: "TA的主页", route: "/syzygy" },
+      { id: "rp", defaultEmoji: "🎭", label: "RP房间", route: "/rp" },
       { id: "settings", defaultEmoji: "⚙️", label: "设置", route: "/settings" },
       { id: "export", defaultEmoji: "📦", label: "导出", route: "/export" },
     ],
@@ -677,7 +677,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     }
     const id = `widget-text-${Date.now()}`;
     const text = window
-      .prompt("输入文本组件内容", "今天也要开心撸仓鼠！")
+      .prompt("输入文本组件内容", "今天也要开心！")
       ?.trim();
     if (!text) {
       return;

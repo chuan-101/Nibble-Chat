@@ -564,13 +564,13 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
         messagesPayload.push({
           role: 'user',
           content: `最近回复：\n${lastReplies
-            .map((reply) => `${reply.authorRole === 'ai' ? 'Syzygy' : '串串'}：${reply.content}`)
+            .map((reply) => `${reply.authorRole === 'ai' ? 'TA' : '我'}：${reply.content}`)
             .join('\n')}`,
         })
       }
       const latestUserComment = [...existingReplies].reverse().find((reply) => reply.authorRole === 'user')
       if (latestUserComment) {
-        messagesPayload.push({ role: 'user', content: `串串最新留言：${latestUserComment.content}` })
+        messagesPayload.push({ role: 'user', content: `我的最新留言：${latestUserComment.content}` })
       }
 
       const result = await requestOpenRouter(messagesPayload)
@@ -610,7 +610,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
         <button type="button" className="ghost" onClick={() => navigate('/')}>
           返回聊天
         </button>
-        <h1 className="ui-title">{showTrash ? '观察日志回收站' : '仓鼠观察日志'}</h1>
+        <h1 className="ui-title">{showTrash ? 'TA的主页回收站' : 'TA的主页'}</h1>
         <button
           type="button"
           className="ghost compact-action"
@@ -635,7 +635,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
           {trashPosts.map((post) => (
             <article key={post.id} className="post-card">
               <div className="post-header">
-                <span className="feed-badge">Syzygy动态</span>
+                <span className="feed-badge">TA动态</span>
               </div>
               {post.modelId ? (
                 <div className="post-content assistant-markdown">
@@ -705,15 +705,15 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
         </main>
       ) : (
         <>
-          <section className="profile-header-card" aria-label="Syzygy主页头部">
+          <section className="profile-header-card" aria-label="TA主页头部">
             <div className="profile-cover-banner" />
             <div className="profile-avatar-surrogate" aria-hidden="true">
               <span className="profile-avatar-letter">S</span>
               <span className="profile-avatar-accent">❤</span>
             </div>
             <div className="profile-meta">
-              <h2 className="profile-title">Syzygy的观察日志</h2>
-              <p className="profile-bio">专属于某只小仓鼠的饲养记录</p>
+              <h2 className="profile-title">TA的主页</h2>
+              <p className="profile-bio">记录TA的日常观察</p>
             </div>
           </section>
 
@@ -733,7 +733,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
                   className="ghost"
                   onClick={() => void handleGeneratePost()}
                   disabled={generatingPost || publishing}
-                  title="生成 Syzygy 动态"
+                  title="生成TA动态"
                 >
                   {generatingPost ? '🤖 生成中…' : '🤖'}
                 </button>
@@ -757,7 +757,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
               return (
                 <article key={post.id} className="post-card">
                   <div className="post-header">
-                    <span className="feed-badge">Syzygy动态</span>
+                    <span className="feed-badge">TA动态</span>
                   </div>
                   {post.modelId ? (
                     <div className="post-content assistant-markdown">
@@ -808,11 +808,11 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
                             <div className="reply-role">
                               {reply.authorRole === 'ai' ? (
                                 <>
-                                  <span>Syzygy</span>
+                                  <span>TA</span>
                                   <span className="reply-model-badge">{reply.modelId || '未知模型'}</span>
                                 </>
                               ) : (
-                                <span>串串</span>
+                                <span>我</span>
                               )}
                             </div>
                             {reply.authorRole === 'ai' ? (
