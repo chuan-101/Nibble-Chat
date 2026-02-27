@@ -600,7 +600,7 @@ const SettingsPage = ({
       await onSaveSyzygyPostPrompt(nextPrompt)
       setSyzygyPostStatus('saved')
     } catch (error) {
-      console.warn('保存 Syzygy 发帖提示词失败', error)
+      console.warn('保存TA发帖提示词失败', error)
       setSyzygyPostStatus('error')
     }
   }
@@ -616,7 +616,7 @@ const SettingsPage = ({
       await onSaveSyzygyReplyPrompt(nextPrompt)
       setSyzygyReplyStatus('saved')
     } catch (error) {
-      console.warn('保存 Syzygy 回复提示词失败', error)
+      console.warn('保存TA回复提示词失败', error)
       setSyzygyReplyStatus('error')
     }
   }
@@ -989,7 +989,7 @@ const SettingsPage = ({
           <span className="section-title">
             <span className="section-icon" aria-hidden="true">🗂️</span>
             <h2 className="ui-title">记忆相关</h2>
-            <p>配置记忆抽取模型；自动提取与归并可在囤囤库中设置。</p>
+            <p>配置记忆抽取模型；自动提取与归并可在记忆库中设置。</p>
           </span>
           <span className="collapse-indicator" aria-hidden="true">›</span>
         </button>
@@ -1172,7 +1172,7 @@ const SettingsPage = ({
           <span className="section-title">
             <span className="section-icon" aria-hidden="true">🍪</span>
             <h2 className="ui-title">Snack Feed</h2>
-            <p>仅用于零食罐罐区；基础系统提示词保持不变。</p>
+            <p>仅用于我的主页；基础系统提示词保持不变。</p>
           </span>
           <span className="collapse-indicator" aria-hidden="true">›</span>
         </button>
@@ -1212,7 +1212,7 @@ const SettingsPage = ({
         >
           <span className="section-title">
             <span className="section-icon" aria-hidden="true">📓</span>
-            <h2 className="ui-title">仓鼠观察日志</h2>
+            <h2 className="ui-title">TA的主页</h2>
             <p>控制发帖与回复时的提示词行为。</p>
           </span>
           <span className="collapse-indicator" aria-hidden="true">›</span>
@@ -1220,7 +1220,7 @@ const SettingsPage = ({
         {syzygySectionExpanded ? (
           <div className="accordion-content">
             <div className="section-title">
-              <h2 className="ui-title">发帖风格（Syzygy Post Prompt）</h2>
+              <h2 className="ui-title">发帖风格（TA Post Prompt）</h2>
               <p>控制 🤖 发帖按钮的文风与输出约束。</p>
             </div>
             <textarea
@@ -1244,7 +1244,7 @@ const SettingsPage = ({
             </div>
 
             <div className="section-title nested-prompt-title">
-              <h2 className="ui-title">回复风格（Syzygy Reply Prompt）</h2>
+              <h2 className="ui-title">回复风格（TA Reply Prompt）</h2>
               <p>控制 🤖 AI 回复的语气与长度。</p>
             </div>
             <textarea

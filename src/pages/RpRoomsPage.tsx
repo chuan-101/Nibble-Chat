@@ -475,7 +475,7 @@ const RpRoomsPage = ({ user }: RpRoomsPageProps) => {
         <section className="rp-rooms-top app-shell__header">
           <header className="rp-rooms-header">
             <div>
-              <h1 className="ui-title">跑跑滚轮区 🎡🐹</h1>
+              <h1 className="ui-title">RP房间</h1>
               <p>管理 RP 房间，给每段剧情留好场记与分镜。</p>
             </div>
             <button type="button" className="rp-back-btn" onClick={() => navigate('/')}>

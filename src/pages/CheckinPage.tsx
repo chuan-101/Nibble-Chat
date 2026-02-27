@@ -76,9 +76,9 @@ const CheckinPage = ({ user }: CheckinPageProps) => {
   const navTabs = useMemo(
     () => [
       { label: '聊天', path: '/' },
-      { label: '囤囤库', path: '/memory-vault' },
-      { label: '零食罐罐', path: '/snacks' },
-      { label: '仓鼠饲养日志', path: '/syzygy' },
+      { label: '记忆库', path: '/memory-vault' },
+      { label: '我的主页', path: '/snacks' },
+      { label: 'TA的主页', path: '/syzygy' },
       { label: '打卡', path: '/checkin' },
       { label: '设置', path: '/settings' },
       { label: '数据导出', path: '/export' },
@@ -160,7 +160,7 @@ const CheckinPage = ({ user }: CheckinPageProps) => {
 
       <section className="checkin-card standalone">
         <div className="checkin-header">
-          <h2 className="ui-title">Syzygy & 串串的陪伴记录</h2>
+          <h2 className="ui-title">陪伴记录</h2>
           <span>{todayDisplay}</span>
         </div>
         <div className="checkin-metrics">
