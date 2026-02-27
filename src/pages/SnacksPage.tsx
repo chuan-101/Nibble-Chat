@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import type { MouseEvent } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import MarkdownRenderer from '../components/MarkdownRenderer'
+import LocalAvatar from '../components/LocalAvatar'
 import type { SnackPost, SnackReply } from '../types'
 import {
   createSnackPost,
@@ -657,10 +658,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
         <>
           <section className="profile-header-card" aria-label="我的主页头部">
             <div className="profile-cover-banner" />
-            <div className="profile-avatar-surrogate" aria-hidden="true">
-              <span className="profile-avatar-letter">C</span>
-              <span className="profile-avatar-accent">🐾</span>
-            </div>
+            <LocalAvatar storageKey="snacks-homepage-avatar" alt="我的主页头像" />
             <div className="profile-meta">
               <h2 className="profile-title">我的主页</h2>
               <p className="profile-bio">记录我的日常片段</p>
@@ -670,7 +668,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
           <section className="snacks-composer">
             <textarea
               rows={2}
-              placeholder="写点今天的零食…"
+              placeholder="写些什么吧！"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               maxLength={maxLength + 10}
@@ -729,7 +727,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
                       disabled={generatingPostId !== null}
                       title="生成 AI 回复"
                     >
-                      🐹
+                      ▶️
                     </button>
                     <button type="button" className="ghost" onClick={() => expandAndFocusReply(post.id)}>
                       回复
