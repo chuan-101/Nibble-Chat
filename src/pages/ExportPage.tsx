@@ -155,7 +155,7 @@ const renderMarkdown = (
   const lines: string[] = ['# Hamster-Nest 导出', `- 导出时间: ${exportedAtIso}`, '- 版本: 1', '']
 
   if (modules.chat) {
-    lines.push('## 吱吱吱区（聊天记录）')
+    lines.push('## 聊天区')
     const sessions = [...data.sessions].sort((a, b) => a.created_at.localeCompare(b.created_at))
     const messagesBySession = new Map<string, MessageRow[]>()
     data.messages.forEach((message) => {
@@ -472,7 +472,7 @@ const ExportPage = ({ user }: { user: User | null }) => {
 
       <section className="export-card export-package-card">
         <span className="export-washi-tape" aria-hidden="true" />
-        <h2 className="ui-title">我的数据仓库 📦🐹</h2>
+        <h2 className="ui-title">我的数据仓库 📦</h2>
 
         <div className="export-subsection">
           <h3>格式便签贴</h3>
@@ -500,23 +500,23 @@ const ExportPage = ({ user }: { user: User | null }) => {
           <h3>导出模块</h3>
           <label>
             <input type="checkbox" checked={modules.chat} onChange={() => toggleModule('chat')} />
-            吱吱吱区（sessions + messages）
+            聊天区
           </label>
           <label>
             <input type="checkbox" checked={modules.snacks} onChange={() => toggleModule('snacks')} />
-            我的主页（snack_posts + snack_replies）
+            我的主页
           </label>
           <label>
             <input type="checkbox" checked={modules.syzygy} onChange={() => toggleModule('syzygy')} />
-            TA的主页（syzygy_posts + syzygy_replies）
+            TA的主页
           </label>
           <label>
             <input type="checkbox" checked={modules.memory} onChange={() => toggleModule('memory')} />
-            记忆库（memory_entries）
+            记忆库
           </label>
           <label>
             <input type="checkbox" checked={modules.checkins} onChange={() => toggleModule('checkins')} />
-            打卡（checkins）
+            打卡
           </label>
         </div>
 
