@@ -847,9 +847,6 @@ const App = () => {
             stream: true,
             isFirstMessage: isFirstMessageInSession,
           }
-          if (reasoningEnabled) {
-            requestBody.reasoning = true
-          }
           if (reasoningEnabled && isClaudeModel(effectiveModel)) {
             const maxTokens = paramsSnapshot.max_tokens ?? 1024
             requestBody.thinking = {
