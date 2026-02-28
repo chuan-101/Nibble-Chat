@@ -24,9 +24,9 @@ type UserSettingsRow = {
   top_p: number | null
   max_tokens: number | null
   system_prompt: string | null
-  snack_system_prompt: string | null
-  syzygy_post_system_prompt: string | null
-  syzygy_reply_system_prompt: string | null
+  user_home_system_prompt: string | null
+  assistant_post_system_prompt: string | null
+  assistant_reply_system_prompt: string | null
   enable_reasoning: boolean | null
   chat_reasoning_enabled: boolean | null
   rp_reasoning_enabled: boolean | null
@@ -73,9 +73,9 @@ const mapSettingsRow = (row: UserSettingsRow): UserSettings => ({
   topP: row.top_p ?? 0.9,
   maxTokens: row.max_tokens ?? 1024,
   systemPrompt: row.system_prompt ?? '',
-  snackSystemOverlay: resolveSnackSystemOverlay(row.snack_system_prompt),
-  syzygyPostSystemPrompt: resolveSyzygyPostPrompt(row.syzygy_post_system_prompt),
-  syzygyReplySystemPrompt: resolveSyzygyReplyPrompt(row.syzygy_reply_system_prompt),
+  snackSystemOverlay: resolveSnackSystemOverlay(row.user_home_system_prompt),
+  syzygyPostSystemPrompt: resolveSyzygyPostPrompt(row.assistant_post_system_prompt),
+  syzygyReplySystemPrompt: resolveSyzygyReplyPrompt(row.assistant_reply_system_prompt),
   chatReasoningEnabled: row.chat_reasoning_enabled ?? row.enable_reasoning ?? true,
   rpReasoningEnabled: row.rp_reasoning_enabled ?? false,
   updatedAt: row.updated_at,
@@ -88,7 +88,7 @@ export const ensureUserSettings = async (userId: string): Promise<UserSettings> 
   const { data, error } = await supabase
     .from('user_settings')
     .select(
-      'user_id,enabled_models,default_model,memory_extract_model,compression_enabled,compression_trigger_ratio,compression_keep_recent_messages,summarizer_model,memory_merge_enabled,memory_auto_extract_enabled,temperature,top_p,max_tokens,system_prompt,snack_system_prompt,syzygy_post_system_prompt,syzygy_reply_system_prompt,enable_reasoning,chat_reasoning_enabled,rp_reasoning_enabled,updated_at',
+      'user_id,enabled_models,default_model,memory_extract_model,compression_enabled,compression_trigger_ratio,compression_keep_recent_messages,summarizer_model,memory_merge_enabled,memory_auto_extract_enabled,temperature,top_p,max_tokens,system_prompt,user_home_system_prompt,assistant_post_system_prompt,assistant_reply_system_prompt,enable_reasoning,chat_reasoning_enabled,rp_reasoning_enabled,updated_at',
     )
     .eq('user_id', userId)
     .maybeSingle()
@@ -115,16 +115,16 @@ export const ensureUserSettings = async (userId: string): Promise<UserSettings> 
         top_p: defaults.topP,
         max_tokens: defaults.maxTokens,
         system_prompt: defaults.systemPrompt,
-        snack_system_prompt: defaults.snackSystemOverlay,
-        syzygy_post_system_prompt: defaults.syzygyPostSystemPrompt,
-        syzygy_reply_system_prompt: defaults.syzygyReplySystemPrompt,
+        user_home_system_prompt: defaults.snackSystemOverlay,
+        assistant_post_system_prompt: defaults.syzygyPostSystemPrompt,
+        assistant_reply_system_prompt: defaults.syzygyReplySystemPrompt,
         enable_reasoning: defaults.chatReasoningEnabled,
         chat_reasoning_enabled: defaults.chatReasoningEnabled,
         rp_reasoning_enabled: defaults.rpReasoningEnabled,
         updated_at: now,
       })
       .select(
-        'user_id,enabled_models,default_model,memory_extract_model,compression_enabled,compression_trigger_ratio,compression_keep_recent_messages,summarizer_model,memory_merge_enabled,memory_auto_extract_enabled,temperature,top_p,max_tokens,system_prompt,snack_system_prompt,syzygy_post_system_prompt,syzygy_reply_system_prompt,enable_reasoning,chat_reasoning_enabled,rp_reasoning_enabled,updated_at',
+        'user_id,enabled_models,default_model,memory_extract_model,compression_enabled,compression_trigger_ratio,compression_keep_recent_messages,summarizer_model,memory_merge_enabled,memory_auto_extract_enabled,temperature,top_p,max_tokens,system_prompt,user_home_system_prompt,assistant_post_system_prompt,assistant_reply_system_prompt,enable_reasoning,chat_reasoning_enabled,rp_reasoning_enabled,updated_at',
       )
       .single()
     if (insertError || !inserted) {
@@ -156,9 +156,9 @@ export const updateUserSettings = async (settings: UserSettings): Promise<void> 
       top_p: settings.topP,
       max_tokens: settings.maxTokens,
       system_prompt: settings.systemPrompt,
-      snack_system_prompt: settings.snackSystemOverlay,
-      syzygy_post_system_prompt: settings.syzygyPostSystemPrompt,
-      syzygy_reply_system_prompt: settings.syzygyReplySystemPrompt,
+      user_home_system_prompt: settings.snackSystemOverlay,
+      assistant_post_system_prompt: settings.syzygyPostSystemPrompt,
+      assistant_reply_system_prompt: settings.syzygyReplySystemPrompt,
       enable_reasoning: settings.chatReasoningEnabled,
       chat_reasoning_enabled: settings.chatReasoningEnabled,
       rp_reasoning_enabled: settings.rpReasoningEnabled,
@@ -178,7 +178,7 @@ export const saveSnackSystemPrompt = async (userId: string, value: string): Prom
   const { error } = await supabase
     .from('user_settings')
     .update({
-      snack_system_prompt: value,
+      user_home_system_prompt: value,
       updated_at: now,
     })
     .eq('user_id', userId)
@@ -268,7 +268,7 @@ export const saveSyzygyPostSystemPrompt = async (userId: string, value: string):
   const { error } = await supabase
     .from('user_settings')
     .update({
-      syzygy_post_system_prompt: value,
+      assistant_post_system_prompt: value,
       updated_at: now,
     })
     .eq('user_id', userId)
@@ -285,7 +285,7 @@ export const saveSyzygyReplySystemPrompt = async (userId: string, value: string)
   const { error } = await supabase
     .from('user_settings')
     .update({
-      syzygy_reply_system_prompt: value,
+      assistant_reply_system_prompt: value,
       updated_at: now,
     })
     .eq('user_id', userId)

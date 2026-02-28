@@ -170,14 +170,14 @@ const SettingsPage = ({
       try {
         const { data, error } = await client
           .from('user_settings')
-          .select('syzygy_post_system_prompt,syzygy_reply_system_prompt')
+          .select('assistant_post_system_prompt,assistant_reply_system_prompt')
           .eq('user_id', user.id)
           .maybeSingle()
         if (!active || error) {
           return
         }
-        setDraftSyzygyPostPrompt(resolveSyzygyPostPrompt(data?.syzygy_post_system_prompt))
-        setDraftSyzygyReplyPrompt(resolveSyzygyReplyPrompt(data?.syzygy_reply_system_prompt))
+        setDraftSyzygyPostPrompt(resolveSyzygyPostPrompt(data?.assistant_post_system_prompt))
+        setDraftSyzygyReplyPrompt(resolveSyzygyReplyPrompt(data?.assistant_reply_system_prompt))
       } catch {
         // ignore and keep local fallback
       }
