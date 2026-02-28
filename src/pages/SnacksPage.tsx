@@ -269,12 +269,12 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
     setError(null)
     setNotice(null)
     try {
-      const { error: repliesError } = await supabase.from('snack_replies').delete().eq('post_id', postId)
+      const { error: repliesError } = await supabase.from('user_replies').delete().eq('post_id', postId)
       if (repliesError) {
         throw repliesError
       }
 
-      const { error: postError } = await supabase.from('snack_posts').delete().eq('id', postId)
+      const { error: postError } = await supabase.from('user_posts').delete().eq('id', postId)
       if (postError) {
         throw postError
       }
@@ -298,7 +298,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
     setError(null)
     setNotice(null)
     try {
-      const { error } = await supabase.from('snack_replies').delete().eq('id', replyId)
+      const { error } = await supabase.from('user_replies').delete().eq('id', replyId)
       if (error) {
         throw error
       }
