@@ -59,6 +59,7 @@ import {
   resolveSyzygyReplyPrompt,
 } from './constants/aiOverlays'
 import { resolveModelId } from './utils/modelResolver'
+import { fetchOpenRouter } from './api/openrouter'
 
 const sortSessions = (sessions: ChatSession[]) =>
   [...sessions].sort(
@@ -828,17 +829,6 @@ const App = () => {
         }
 
         try {
-          const { data } = await supabase.auth.getSession()
-          const accessToken = data.session?.access_token
-          if (!accessToken) {
-            window.alert('登录状态异常，请重新登录')
-            return
-          }
-          const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
-          if (!anonKey) {
-            window.alert('Supabase 环境变量未配置')
-            return
-          }
           const messagesPayload = buildOpenAiMessages(
             sessionId,
             messagesRef.current,
@@ -871,19 +861,10 @@ const App = () => {
           streamingControllerRef.current?.abort()
           streamingControllerRef.current = controller
           setIsStreaming(true)
-          const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openrouter-chat`,
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                apikey: anonKey,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-              signal: controller.signal,
-            },
-          )
+          const response = await fetchOpenRouter('/chat/completions', {
+            body: requestBody,
+            signal: controller.signal,
+          })
           if (!response.ok) {
             const errorText = await response.text()
             throw new Error(errorText || '请求失败')
@@ -1096,7 +1077,8 @@ const App = () => {
             pending: false,
           })
           applySnapshot(sessionsRef.current, failedMessages)
-          window.alert('回复失败，请稍后重试。')
+          const errorMessage = error instanceof Error && error.message ? error.message : '回复失败，请稍后重试。'
+          window.alert(errorMessage)
         } finally {
           setIsStreaming(false)
           streamingControllerRef.current = null

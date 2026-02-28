@@ -2,8 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useNavigate } from 'react-router-dom'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { fetchOpenRouterModels } from '../api/openrouter'
 import type { UserSettings } from '../types'
 import { supabase } from '../supabase/client'
+import {
+  clearOpenRouterApiKey,
+  getOpenRouterApiKey,
+  saveOpenRouterApiKey,
+} from '../storage/openrouterKey'
 import {
   DEFAULT_SNACK_SYSTEM_OVERLAY,
   DEFAULT_SYZYGY_POST_PROMPT,
@@ -63,6 +69,9 @@ const SettingsPage = ({
   const [compressionSectionExpanded, setCompressionSectionExpanded] = useState(false)
   const [systemPromptSectionExpanded, setSystemPromptSectionExpanded] = useState(false)
   const [draftEnabledModels, setDraftEnabledModels] = useState<string[]>([])
+  const [openRouterApiKeyInput, setOpenRouterApiKeyInput] = useState(() => getOpenRouterApiKey())
+  const [openRouterApiKeyVisible, setOpenRouterApiKeyVisible] = useState(false)
+  const [openRouterApiKeyStatus, setOpenRouterApiKeyStatus] = useState<'idle' | 'saved'>('idle')
   const [draftDefaultModel, setDraftDefaultModel] = useState(defaultModelId)
   const [draftChatReasoning, setDraftChatReasoning] = useState(true)
   const [draftRpReasoning, setDraftRpReasoning] = useState(false)
@@ -189,7 +198,7 @@ const SettingsPage = ({
   }, [user])
 
   useEffect(() => {
-    if (!user || !supabase) {
+    if (!user) {
       return
     }
     let active = true
@@ -197,33 +206,42 @@ const SettingsPage = ({
       setCatalogStatus('loading')
       setCatalogError(null)
     }, 0)
-    supabase.functions
-      .invoke('openrouter-models')
-      .then(({ data, error }) => {
+    fetchOpenRouterModels()
+      .then((models) => {
         if (!active) {
           return
         }
-        if (error) {
-          setCatalogStatus('error')
-          setCatalogError('无法加载 OpenRouter 模型库')
-          return
-        }
-        const models = (data?.models ?? []) as OpenRouterModel[]
         setCatalog(models)
         setCatalogStatus('idle')
       })
-      .catch(() => {
+      .catch((error) => {
         if (!active) {
           return
         }
         setCatalogStatus('error')
-        setCatalogError('无法加载 OpenRouter 模型库')
+        setCatalogError(error instanceof Error ? error.message : '无法加载 OpenRouter 模型库')
       })
     return () => {
       active = false
       window.clearTimeout(timer)
     }
   }, [user])
+
+  const handleSaveOpenRouterApiKey = () => {
+    const trimmed = openRouterApiKeyInput.trim()
+    if (!trimmed) {
+      return
+    }
+    saveOpenRouterApiKey(trimmed)
+    setOpenRouterApiKeyInput(trimmed)
+    setOpenRouterApiKeyStatus('saved')
+  }
+
+  const handleClearOpenRouterApiKey = () => {
+    clearOpenRouterApiKey()
+    setOpenRouterApiKeyInput('')
+    setOpenRouterApiKeyStatus('idle')
+  }
 
   const catalogMap = useMemo(() => {
     return new Map(catalog.map((model) => [model.id, model.name ?? model.id]))
@@ -755,6 +773,54 @@ const SettingsPage = ({
           <span className="settings-ribbon-line" />
         </div>
         <div className="settings-group" role="list">
+      <section className="settings-section" role="listitem">
+        <div className="accordion-content">
+          <div className="section-title">
+            <span className="section-icon" aria-hidden="true">🔑</span>
+            <h2 className="ui-title">OpenRouter API Key</h2>
+            <p>API Key 仅保存在本地浏览器，不会上传。更换设备/浏览器需要重新填写。清除浏览器数据会丢失。</p>
+          </div>
+          <label htmlFor="openrouter-api-key">API Key</label>
+          <div className="model-select-row">
+            <input
+              id="openrouter-api-key"
+              type={openRouterApiKeyVisible ? 'text' : 'password'}
+              value={openRouterApiKeyInput}
+              onChange={(event) => {
+                setOpenRouterApiKeyInput(event.target.value)
+                setOpenRouterApiKeyStatus('idle')
+              }}
+              placeholder="sk-or-v1-..."
+            />
+            <button
+              type="button"
+              className="ghost small"
+              onClick={() => setOpenRouterApiKeyVisible((current) => !current)}
+            >
+              {openRouterApiKeyVisible ? '隐藏' : '显示'}
+            </button>
+          </div>
+          <div className="system-prompt-actions">
+            <button
+              type="button"
+              className="primary"
+              onClick={handleSaveOpenRouterApiKey}
+              disabled={!openRouterApiKeyInput.trim()}
+            >
+              保存
+            </button>
+            <button
+              type="button"
+              className="ghost danger"
+              onClick={handleClearOpenRouterApiKey}
+              disabled={!openRouterApiKeyInput.trim()}
+            >
+              清除
+            </button>
+            {openRouterApiKeyStatus === 'saved' ? <span className="system-prompt-status">已保存到本地</span> : null}
+          </div>
+        </div>
+      </section>
       <section className="settings-section" role="listitem">
         <button
           type="button"

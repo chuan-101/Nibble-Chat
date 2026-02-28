@@ -6,6 +6,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import ReasoningPanel from '../components/ReasoningPanel'
 import { useEnabledModels } from '../hooks/useEnabledModels'
+import { fetchOpenRouter } from '../api/openrouter'
 import { stripSpeakerPrefix } from '../utils/rpMessage'
 import { supabase } from '../supabase/client'
 import {
@@ -351,13 +352,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
     if (!supabase) {
       throw new Error('Supabase 客户端未配置')
     }
-    const { data } = await supabase.auth.getSession()
-    const accessToken = data.session?.access_token
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
-    if (!accessToken || !anonKey) {
-      throw new Error('登录状态异常或环境变量未配置')
-    }
-
     const requestBody: Record<string, unknown> = {
       conversationId: payload.conversationId,
       model: payload.modelId,
@@ -386,14 +380,8 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
       }
     }
 
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openrouter-chat`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        apikey: anonKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    const response = await fetchOpenRouter('/chat/completions', {
+      body: requestBody,
     })
 
     if (response.status === 402 && !payload.bypassReasoning) {

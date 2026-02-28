@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import ConfirmDialog from '../components/ConfirmDialog'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import LocalAvatar from '../components/LocalAvatar'
+import { fetchOpenRouter } from '../api/openrouter'
 import type { SyzygyPost, SyzygyReply } from '../types'
 import {
   createSyzygyPost,
@@ -433,21 +434,8 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
     if (!supabase) {
       throw new Error('Supabase 客户端未配置')
     }
-    const { data } = await supabase.auth.getSession()
-    const accessToken = data.session?.access_token
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
-    if (!accessToken || !anonKey) {
-      throw new Error('登录状态异常或环境变量未配置')
-    }
-
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openrouter-chat`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        apikey: anonKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(buildRequestBody(messagesPayload)),
+    const response = await fetchOpenRouter('/chat/completions', {
+      body: buildRequestBody(messagesPayload),
     })
 
     if (!response.ok) {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { fetchOpenRouterModels } from '../api/openrouter'
 import { ensureUserSettings } from '../storage/userSettings'
-import { supabase } from '../supabase/client'
 
 type OpenRouterModel = {
   id: string
@@ -39,19 +39,17 @@ export const useEnabledModels = (user: User | null) => {
 
   useEffect(() => {
     let active = true
-    if (!user || !supabase) {
+    if (!user) {
       return () => {
         active = false
       }
     }
 
-    supabase.functions
-      .invoke<{ data?: OpenRouterModel[] }>('openrouter-models', { body: {} })
-      .then(({ data }) => {
+    fetchOpenRouterModels()
+      .then((models) => {
         if (!active) {
           return
         }
-        const models = Array.isArray(data?.data) ? data.data : []
         setCatalog(models)
       })
       .catch(() => {
