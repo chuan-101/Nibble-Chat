@@ -1,4 +1,4 @@
-.snacks-page {
+.my-home-page {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--page-bg);
@@ -10,13 +10,13 @@
   gap: 18px;
 }
 
-.snacks-header {
+.my-home-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.snacks-header h1 {
+.my-home-header h1 {
   font-size: 18px;
   margin: 0;
 }
@@ -109,7 +109,7 @@
   font-size: 13px;
 }
 
-.snacks-composer {
+.my-home-composer {
   background: #fff;
   border-radius: 12px;
   padding: 10px 12px;
@@ -117,7 +117,7 @@
   margin-top: 6px;
 }
 
-.snacks-composer textarea {
+.my-home-composer textarea {
   width: 100%;
   resize: vertical;
   border: 1px solid #e0e0e0;
@@ -137,7 +137,7 @@
   );
 }
 
-.snacks-composer textarea:focus,
+.my-home-composer textarea:focus,
 .reply-composer textarea:focus {
   border-color: #ffd6e7;
   outline: none;
@@ -151,7 +151,7 @@
   justify-content: space-between;
 }
 
-.snacks-feed {
+.home-feed {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -218,16 +218,16 @@
 }
 
 
-.snacks-page .ghost {
+.my-home-page .ghost {
   color: #a3a3a3;
   transition: color 0.2s ease;
 }
 
-.snacks-page .ghost:hover {
+.my-home-page .ghost:hover {
   color: #ffd6e7;
 }
 
-.snacks-page .ghost.danger {
+.my-home-page .ghost.danger {
   color: #a3a3a3;
 }
 
