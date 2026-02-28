@@ -112,8 +112,8 @@ const AuthPage = ({ user }: AuthPageProps) => {
         <div className="hamster-logo" aria-hidden="true">
           <span className="auth-logo-icon" />
         </div>
-        <h1 className="ui-title">Welcome to Hamster Nest</h1>
-        <p className="subtitle">Enter your password to unlock your secret lair</p>
+        <h1 className="ui-title">欢迎使用 Nibble-Chat</h1>
+        <p className="subtitle">请输入邮箱获取验证码并登录</p>
         <label className="field">
           <span className="field-label">邮箱地址</span>
           <div className="input-shell">
