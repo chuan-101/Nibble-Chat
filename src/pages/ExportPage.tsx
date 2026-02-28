@@ -360,12 +360,12 @@ const ExportPage = ({ user }: { user: User | null }) => {
       if (modules.snacks) {
         const [{ data: snackPosts, error: snackPostError }, { data: snackReplies, error: snackReplyError }] = await Promise.all([
           supabase
-            .from('snack_posts')
+            .from('user_posts')
             .select('id,content,created_at,updated_at,is_deleted')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false }),
           supabase
-            .from('snack_replies')
+            .from('user_replies')
             .select('id,post_id,role,content,created_at,is_deleted')
             .eq('user_id', user.id)
             .order('created_at', { ascending: true }),
@@ -380,12 +380,12 @@ const ExportPage = ({ user }: { user: User | null }) => {
       if (modules.syzygy) {
         const [{ data: syzygyPosts, error: syzygyPostError }, { data: syzygyReplies, error: syzygyReplyError }] = await Promise.all([
           supabase
-            .from('syzygy_posts')
+            .from('assistant_posts')
             .select('id,content,created_at,updated_at,is_deleted')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false }),
           supabase
-            .from('syzygy_replies')
+            .from('assistant_replies')
             .select('id,post_id,author_role,content,created_at,is_deleted')
             .eq('user_id', user.id)
             .order('created_at', { ascending: true }),

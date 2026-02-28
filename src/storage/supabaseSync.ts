@@ -967,7 +967,7 @@ export const fetchSnackPosts = async (): Promise<SnackPost[]> => {
     return []
   }
   const { data, error } = await supabase
-    .from('snack_posts')
+    .from('user_posts')
     .select('id,user_id,content,created_at,updated_at,is_deleted')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
@@ -983,7 +983,7 @@ export const fetchDeletedSnackPosts = async (): Promise<SnackPost[]> => {
     return []
   }
   const { data, error } = await supabase
-    .from('snack_posts')
+    .from('user_posts')
     .select('id,user_id,content,created_at,updated_at,is_deleted')
     .eq('is_deleted', true)
     .order('updated_at', { ascending: false })
@@ -999,7 +999,7 @@ export const createSnackPost = async (content: string): Promise<SnackPost> => {
     throw new Error('Supabase 客户端未配置')
   }
   const { data, error } = await supabase
-    .from('snack_posts')
+    .from('user_posts')
     .insert({ content })
     .select('id,user_id,content,created_at,updated_at,is_deleted')
     .single()
@@ -1038,7 +1038,7 @@ export const fetchSnackReplies = async (postIds: string[]): Promise<SnackReply[]
     return []
   }
   const { data, error } = await supabase
-    .from('snack_replies')
+    .from('user_replies')
     .select('id,user_id,post_id,role,content,meta,created_at,is_deleted')
     .in('post_id', postIds)
     .in('role', ['user', 'assistant'])
@@ -1055,7 +1055,7 @@ export const fetchSnackRepliesByPost = async (postId: string): Promise<SnackRepl
     return []
   }
   const { data, error } = await supabase
-    .from('snack_replies')
+    .from('user_replies')
     .select('id,user_id,post_id,role,content,meta,created_at,is_deleted')
     .eq('post_id', postId)
     .eq('is_deleted', false)
@@ -1077,7 +1077,7 @@ export const createSnackReply = async (
     throw new Error('Supabase 客户端未配置')
   }
   const { data, error } = await supabase
-    .from('snack_replies')
+    .from('user_replies')
     .insert({ post_id: postId, role, content, meta: meta ?? {} })
     .select('id,user_id,post_id,role,content,meta,created_at,is_deleted')
     .single()
@@ -1103,7 +1103,7 @@ export const fetchDeletedSnackReplies = async (): Promise<SnackReply[]> => {
     return []
   }
   const { data, error } = await supabase
-    .from('snack_replies')
+    .from('user_replies')
     .select('id,user_id,post_id,role,content,meta,created_at,is_deleted')
     .eq('is_deleted', true)
     .order('created_at', { ascending: false })
@@ -1119,7 +1119,7 @@ export const restoreSnackReply = async (replyId: string): Promise<void> => {
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('snack_replies')
+    .from('user_replies')
     .update({ is_deleted: false })
     .eq('id', replyId)
 
@@ -1132,13 +1132,13 @@ export const permanentlyDeleteSnackPost = async (postId: string): Promise<void> 
   if (!supabase) {
     throw new Error('Supabase 客户端未配置')
   }
-  const { error: repliesError } = await supabase.from('snack_replies').delete().eq('post_id', postId)
+  const { error: repliesError } = await supabase.from('user_replies').delete().eq('post_id', postId)
   if (repliesError) {
     throw repliesError
   }
 
   const { error: postError } = await supabase
-    .from('snack_posts')
+    .from('user_posts')
     .delete()
     .eq('id', postId)
     .eq('is_deleted', true)
@@ -1153,7 +1153,7 @@ export const permanentlyDeleteSnackReply = async (replyId: string): Promise<void
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('snack_replies')
+    .from('user_replies')
     .delete()
     .eq('id', replyId)
     .eq('is_deleted', true)
@@ -1169,7 +1169,7 @@ export const fetchSyzygyPosts = async (): Promise<SyzygyPost[]> => {
     return []
   }
   const { data, error } = await supabase
-    .from('syzygy_posts')
+    .from('assistant_posts')
     .select('id,user_id,content,model_id,created_at,updated_at,is_deleted')
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
@@ -1184,7 +1184,7 @@ export const fetchDeletedSyzygyPosts = async (): Promise<SyzygyPost[]> => {
     return []
   }
   const { data, error } = await supabase
-    .from('syzygy_posts')
+    .from('assistant_posts')
     .select('id,user_id,content,model_id,created_at,updated_at,is_deleted')
     .eq('is_deleted', true)
     .order('updated_at', { ascending: false })
@@ -1204,7 +1204,7 @@ export const createSyzygyPost = async (
   }
   const userId = await requireAuthenticatedUserId()
   const { data, error } = await supabase
-    .from('syzygy_posts')
+    .from('assistant_posts')
     .insert({ user_id: userId, content, model_id: selectedModelId ?? null })
     .select('id,user_id,content,model_id,created_at,updated_at,is_deleted')
     .single()
@@ -1220,7 +1220,7 @@ export const restoreSyzygyPost = async (postId: string): Promise<void> => {
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('syzygy_posts')
+    .from('assistant_posts')
     .update({ is_deleted: false, deleted_at: null })
     .eq('id', postId)
 
@@ -1234,7 +1234,7 @@ export const softDeleteSyzygyPost = async (postId: string): Promise<void> => {
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('syzygy_posts')
+    .from('assistant_posts')
     .update({ is_deleted: true, deleted_at: new Date().toISOString() })
     .eq('id', postId)
 
@@ -1248,7 +1248,7 @@ export const fetchSyzygyReplies = async (postIds: string[]): Promise<SyzygyReply
     return []
   }
   const { data, error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .select('id,user_id,post_id,author_role,content,model_id,created_at,is_deleted')
     .in('post_id', postIds)
     .in('author_role', ['user', 'ai'])
@@ -1265,7 +1265,7 @@ export const fetchSyzygyRepliesByPost = async (postId: string): Promise<SyzygyRe
     return []
   }
   const { data, error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .select('id,user_id,post_id,author_role,content,model_id,created_at,is_deleted')
     .eq('post_id', postId)
     .eq('is_deleted', false)
@@ -1288,7 +1288,7 @@ export const createSyzygyReply = async (
   }
   const userId = await requireAuthenticatedUserId()
   const { data, error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .insert({
       user_id: userId,
       post_id: postId,
@@ -1309,7 +1309,7 @@ export const softDeleteSyzygyReply = async (replyId: string): Promise<void> => {
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .update({ is_deleted: true, deleted_at: new Date().toISOString() })
     .eq('id', replyId)
 
@@ -1323,7 +1323,7 @@ export const fetchDeletedSyzygyReplies = async (): Promise<SyzygyReply[]> => {
     return []
   }
   const { data, error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .select('id,user_id,post_id,author_role,content,model_id,created_at,is_deleted')
     .eq('is_deleted', true)
     .order('created_at', { ascending: false })
@@ -1339,7 +1339,7 @@ export const restoreSyzygyReply = async (replyId: string): Promise<void> => {
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .update({ is_deleted: false, deleted_at: null })
     .eq('id', replyId)
 
@@ -1352,13 +1352,13 @@ export const permanentlyDeleteSyzygyPost = async (postId: string): Promise<void>
   if (!supabase) {
     throw new Error('Supabase 客户端未配置')
   }
-  const { error: repliesError } = await supabase.from('syzygy_replies').delete().eq('post_id', postId)
+  const { error: repliesError } = await supabase.from('assistant_replies').delete().eq('post_id', postId)
   if (repliesError) {
     throw repliesError
   }
 
   const { error: postError } = await supabase
-    .from('syzygy_posts')
+    .from('assistant_posts')
     .delete()
     .eq('id', postId)
     .eq('is_deleted', true)
@@ -1373,7 +1373,7 @@ export const permanentlyDeleteSyzygyReply = async (replyId: string): Promise<voi
     throw new Error('Supabase 客户端未配置')
   }
   const { error } = await supabase
-    .from('syzygy_replies')
+    .from('assistant_replies')
     .delete()
     .eq('id', replyId)
     .eq('is_deleted', true)
