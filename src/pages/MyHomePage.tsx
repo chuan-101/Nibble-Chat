@@ -26,9 +26,9 @@ import {
   DEFAULT_SYZYGY_REPLY_PROMPT,
   resolveSyzygyReplyPrompt,
 } from '../constants/aiOverlays'
-import './SnacksPage.css'
+import './MyHomePage.css'
 
-type SnacksPageProps = {
+type MyHomePageProps = {
   user: User | null
   snackAiConfig: {
     model: string
@@ -63,7 +63,7 @@ const getReplyPreview = (reply: SnackReply | undefined) => {
   return reply.content.length > 30 ? `${reply.content.slice(0, 30)}…` : reply.content
 }
 
-const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
+const MyHomePage = ({ user, snackAiConfig }: MyHomePageProps) => {
   const navigate = useNavigate()
   const [draft, setDraft] = useState('')
   const [posts, setPosts] = useState<SnackPost[]>([])
@@ -560,8 +560,8 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
   }
 
   return (
-    <div className="snacks-page app-shell__content">
-      <header className="snacks-header">
+    <div className="my-home-page app-shell__content">
+      <header className="my-home-header">
         <button type="button" className="ghost" onClick={() => navigate('/')}>
           返回聊天
         </button>
@@ -582,7 +582,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
       {notice ? <p className="tips">{notice}</p> : null}
 
       {showTrash ? (
-        <main className="snacks-feed">
+        <main className="home-feed">
           {trashLoading ? <p className="tips">回收站加载中…</p> : null}
           {!trashLoading && trashPosts.length === 0 && trashReplies.length === 0 ? <p className="tips">回收站是空的。</p> : null}
           {trashPosts.map((post) => (
@@ -645,14 +645,14 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
         <>
           <section className="profile-header-card" aria-label="我的主页头部">
             <div className="profile-cover-banner" />
-            <LocalAvatar storageKey="snacks-homepage-avatar" alt="我的主页头像" />
+            <LocalAvatar storageKey="my-homepage-avatar" alt="我的主页头像" />
             <div className="profile-meta">
               <h2 className="profile-title">我的主页</h2>
               <p className="profile-bio">记录我的日常片段</p>
             </div>
           </section>
 
-          <section className="snacks-composer">
+          <section className="my-home-composer">
             <textarea
               rows={2}
               placeholder="写些什么吧！"
@@ -672,7 +672,7 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
             {draftTooLong ? <p className="error">内容不能超过 1000 字。</p> : null}
           </section>
 
-          <main className="snacks-feed">
+          <main className="home-feed">
             {loading ? <p className="tips">加载中…</p> : null}
             {!loading && posts.length === 0 ? <p className="tips">还没有记录，来发布第一条吧。</p> : null}
             {posts.map((post) => {
@@ -800,4 +800,4 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
   )
 }
 
-export default SnacksPage
+export default MyHomePage

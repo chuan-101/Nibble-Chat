@@ -43,8 +43,8 @@ import {
 import { supabase } from './supabase/client'
 import './App.css'
 import SettingsPage from './pages/SettingsPage'
-import SnacksPage from './pages/SnacksPage'
-import SyzygyFeedPage from './pages/SyzygyFeedPage'
+import MyHomePage from './pages/MyHomePage'
+import AssistantHomePage from './pages/AssistantHomePage'
 import MemoryVaultPage from './pages/MemoryVaultPage'
 import CheckinPage from './pages/CheckinPage'
 import ExportPage from './pages/ExportPage'
@@ -1472,7 +1472,7 @@ const App = () => {
           path="/snacks"
           element={
             <RequireAuth ready={authReady} user={user}>
-              <SnacksPage user={user} snackAiConfig={snackAiConfig} />
+              <MyHomePage user={user} snackAiConfig={snackAiConfig} />
             </RequireAuth>
           }
         />
@@ -1497,7 +1497,7 @@ const App = () => {
           path="/syzygy"
           element={
             <RequireAuth ready={authReady} user={user}>
-              <SyzygyFeedPage user={user} snackAiConfig={syzygyAiConfig} />
+              <AssistantHomePage user={user} snackAiConfig={syzygyAiConfig} />
             </RequireAuth>
           }
         />

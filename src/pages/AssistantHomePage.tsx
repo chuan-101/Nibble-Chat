@@ -28,9 +28,9 @@ import {
   resolveSyzygyPostPrompt,
   resolveSyzygyReplyPrompt,
 } from '../constants/aiOverlays'
-import './SnacksPage.css'
+import './MyHomePage.css'
 
-type SyzygyFeedPageProps = {
+type AssistantHomePageProps = {
   user: User | null
   snackAiConfig: {
     model: string
@@ -69,7 +69,7 @@ const getReplyPreview = (reply: SyzygyReply | undefined) => {
   return reply.content.length > 30 ? `${reply.content.slice(0, 30)}…` : reply.content
 }
 
-const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
+const AssistantHomePage = ({ user, snackAiConfig }: AssistantHomePageProps) => {
   const navigate = useNavigate()
   const [draft, setDraft] = useState('')
   const [posts, setPosts] = useState<SyzygyPost[]>([])
@@ -593,8 +593,8 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
   }
 
   return (
-    <div className="snacks-page app-shell__content">
-      <header className="snacks-header">
+    <div className="my-home-page app-shell__content">
+      <header className="my-home-header">
         <button type="button" className="ghost" onClick={() => navigate('/')}>
           返回聊天
         </button>
@@ -615,7 +615,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
       {notice ? <p className="tips">{notice}</p> : null}
 
       {showTrash ? (
-        <main className="snacks-feed">
+        <main className="home-feed">
           {trashLoading ? <p className="tips">回收站加载中…</p> : null}
           {!trashLoading && trashPosts.length === 0 && trashReplies.length === 0 ? (
             <p className="tips">回收站空空如也，去记录点新观察吧。</p>
@@ -702,7 +702,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
             </div>
           </section>
 
-          <section className="snacks-composer">
+          <section className="my-home-composer">
             <textarea
               rows={2}
               placeholder="写些什么吧！"
@@ -730,7 +730,7 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
             {draftTooLong ? <p className="error">内容不能超过 1000 字。</p> : null}
           </section>
 
-          <main className="snacks-feed">
+          <main className="home-feed">
             {loading ? <p className="tips">加载中…</p> : null}
             {!loading && posts.length === 0 ? <p className="tips">还没有日志，来发布第一条吧。</p> : null}
             {posts.map((post) => {
@@ -864,4 +864,4 @@ const SyzygyFeedPage = ({ user, snackAiConfig }: SyzygyFeedPageProps) => {
   )
 }
 
-export default SyzygyFeedPage
+export default AssistantHomePage
