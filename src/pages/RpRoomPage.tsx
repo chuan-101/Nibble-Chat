@@ -371,7 +371,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
       requestBody.rpKeepRecentMessages = payload.rpKeepRecentMessages
     }
     if (payload.reasoning && !payload.bypassReasoning) {
-      requestBody.reasoning = true
       if (/claude|anthropic/i.test(payload.modelId)) {
         requestBody.thinking = {
           type: 'enabled',

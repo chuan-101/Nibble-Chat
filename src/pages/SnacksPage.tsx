@@ -411,7 +411,6 @@ const SnacksPage = ({ user, snackAiConfig }: SnacksPageProps) => {
       temperature: snackAiConfig.temperature,
       top_p: snackAiConfig.topP,
       max_tokens: snackAiConfig.maxTokens,
-      reasoning: snackAiConfig.reasoning,
       stream: false,
     }
 
