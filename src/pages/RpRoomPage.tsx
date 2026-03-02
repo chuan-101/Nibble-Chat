@@ -7,6 +7,7 @@ import MarkdownRenderer from '../components/MarkdownRenderer'
 import ReasoningPanel from '../components/ReasoningPanel'
 import { useEnabledModels } from '../hooks/useEnabledModels'
 import { fetchOpenRouter } from '../api/openrouter'
+import { isGpt5Auto } from '../utils/openrouterReasoning'
 import { stripSpeakerPrefix } from '../utils/rpMessage'
 import { supabase } from '../supabase/client'
 import {
@@ -28,6 +29,7 @@ type RpRoomPageProps = {
   user: User | null
   mode?: 'chat' | 'dashboard'
   rpReasoningEnabled: boolean
+  rpHighReasoningEnabled: boolean
   onDisableRpReasoning: () => Promise<void>
 }
 
@@ -88,7 +90,7 @@ const readRoomContextTokenLimit = (value: unknown) => {
   return Math.min(Math.max(normalized, RP_ROOM_CONTEXT_TOKEN_LIMIT_MIN), RP_ROOM_CONTEXT_TOKEN_LIMIT_MAX)
 }
 
-const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReasoning }: RpRoomPageProps) => {
+const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEnabled, onDisableRpReasoning }: RpRoomPageProps) => {
   const { sessionId } = useParams()
   const navigate = useNavigate()
   const [room, setRoom] = useState<RpSession | null>(null)
@@ -375,6 +377,11 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, onDisableRpReason
         requestBody.thinking = {
           type: 'enabled',
           budget_tokens: 1024,
+        }
+      }
+      if (rpHighReasoningEnabled && isGpt5Auto(payload.modelId)) {
+        requestBody.reasoning = {
+          effort: 'high',
         }
       }
     }
