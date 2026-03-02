@@ -47,12 +47,15 @@ const ChatPage = ({
 }: ChatPageProps) => {
   const [draft, setDraft] = useState('')
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
+  const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [openHeaderMenu, setOpenHeaderMenu] = useState(false)
   const [headerMenuPosition, setHeaderMenuPosition] = useState({ top: 0, right: 0 })
   const [pendingDelete, setPendingDelete] = useState<ChatMessage | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const headerMenuRef = useRef<HTMLDivElement | null>(null)
   const headerMenuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const actionTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const actionsMenuRef = useRef<HTMLDivElement | null>(null)
   const navigate = useNavigate()
 
   const submitDraft = async () => {
@@ -122,6 +125,60 @@ const ChatPage = ({
       document.body.classList.remove('chat-page-active')
     }
   }, [])
+
+  useEffect(() => {
+    if (!openActionsId) {
+      setActionsMenuPosition(null)
+      return
+    }
+
+    const updateActionsMenuPosition = () => {
+      const trigger = actionTriggerRefs.current[openActionsId]
+      if (!trigger) {
+        return
+      }
+      const rect = trigger.getBoundingClientRect()
+      const menuWidth = 160
+      const viewportPadding = 12
+      const left = Math.min(
+        Math.max(rect.right - menuWidth, viewportPadding),
+        window.innerWidth - menuWidth - viewportPadding,
+      )
+      const top = Math.min(rect.bottom + 6, window.innerHeight - 96)
+      setActionsMenuPosition({ top, left })
+    }
+
+    updateActionsMenuPosition()
+    window.addEventListener('resize', updateActionsMenuPosition)
+    window.addEventListener('scroll', updateActionsMenuPosition, true)
+
+    return () => {
+      window.removeEventListener('resize', updateActionsMenuPosition)
+      window.removeEventListener('scroll', updateActionsMenuPosition, true)
+    }
+  }, [openActionsId])
+
+  useEffect(() => {
+    if (!openActionsId) {
+      return
+    }
+
+    const handleClick = (event: MouseEvent) => {
+      if (actionsMenuRef.current?.contains(event.target as Node)) {
+        return
+      }
+      const trigger = actionTriggerRefs.current[openActionsId]
+      if (trigger?.contains(event.target as Node)) {
+        return
+      }
+      setOpenActionsId(null)
+    }
+
+    document.addEventListener('click', handleClick)
+    return () => {
+      document.removeEventListener('click', handleClick)
+    }
+  }, [openActionsId])
 
   useEffect(() => {
     if (!openHeaderMenu) {
@@ -306,6 +363,9 @@ const ChatPage = ({
                     className="ghost action-trigger"
                     aria-expanded={openActionsId === message.id}
                     aria-label={actionsLabel}
+                    ref={(element) => {
+                      actionTriggerRefs.current[message.id] = element
+                    }}
                     onClick={() =>
                       setOpenActionsId((current) =>
                         current === message.id ? null : message.id,
@@ -314,21 +374,6 @@ const ChatPage = ({
                   >
                     •••
                   </button>
-                  {openActionsId === message.id ? (
-                    <div className="actions-menu" role="menu">
-                      <button type="button" role="menuitem" onClick={() => handleCopy(message)}>
-                        复制
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="danger"
-                        onClick={() => handleDelete(message)}
-                      >
-                        删除
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               </div>
             </div>
@@ -405,6 +450,39 @@ const ChatPage = ({
           </button>
         </div>
       </form>
+      {openActionsId && actionsMenuPosition
+        ? createPortal(
+            <div
+              className="actions-menu actions-menu-portal"
+              role="menu"
+              style={{ top: actionsMenuPosition.top, left: actionsMenuPosition.left }}
+              ref={actionsMenuRef}
+            >
+              {(() => {
+                const message = messages.find((item) => item.id === openActionsId)
+                if (!message) {
+                  return null
+                }
+                return (
+                  <>
+                    <button type="button" role="menuitem" onClick={() => handleCopy(message)}>
+                      复制
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="danger"
+                      onClick={() => handleDelete(message)}
+                    >
+                      删除
+                    </button>
+                  </>
+                )
+              })()}
+            </div>,
+            document.body,
+          )
+        : null}
       <ConfirmDialog
         open={pendingDelete !== null}
         title="删除这条消息？"
