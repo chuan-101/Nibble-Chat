@@ -828,10 +828,8 @@ const App = () => {
             isFirstMessage: isFirstMessageInSession,
           }
           if (reasoningEnabled && isClaudeModel(effectiveModel)) {
-            const maxTokens = paramsSnapshot.max_tokens ?? 1024
-            requestBody.thinking = {
-              type: 'enabled',
-              budget_tokens: Math.max(256, Math.min(1024, maxTokens)),
+            requestBody.reasoning = {
+              effort: 'high',
             }
           }
           if (
