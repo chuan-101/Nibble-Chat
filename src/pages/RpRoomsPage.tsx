@@ -543,7 +543,7 @@ const RpRoomsPage = ({ user }: RpRoomsPageProps) => {
                 return (
                   <li
                     key={room.id}
-                    className="rp-room-tile"
+                    className={`rp-room-tile${isRenaming ? ' is-editing' : ''}`}
                     style={{ backgroundColor: tileColor }}
                   >
                     <div className="rp-room-tile-top">

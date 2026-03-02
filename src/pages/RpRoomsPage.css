@@ -251,10 +251,16 @@
   padding: 10px;
   min-height: 160px;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.14);
-  overflow: hidden;
+  overflow: visible;
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 8px;
+}
+
+.rp-room-tile.is-editing {
+  height: auto;
+  min-height: 190px;
+  grid-template-rows: auto auto auto;
 }
 
 .rp-room-tile::before {
@@ -428,6 +434,7 @@
 
 .rp-rename-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
