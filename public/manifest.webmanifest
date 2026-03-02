@@ -1,6 +1,6 @@
 {
-  "name": "Hamster Nest",
-  "short_name": "HamNest",
+  "name": "Nibble Chat",
+  "short_name": "Nibble Chat",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
