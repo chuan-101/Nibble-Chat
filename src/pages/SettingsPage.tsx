@@ -68,6 +68,7 @@ const SettingsPage = ({
   const [memorySectionExpanded, setMemorySectionExpanded] = useState(false)
   const [compressionSectionExpanded, setCompressionSectionExpanded] = useState(false)
   const [systemPromptSectionExpanded, setSystemPromptSectionExpanded] = useState(false)
+  const [openRouterKeySectionExpanded, setOpenRouterKeySectionExpanded] = useState(false)
   const [draftEnabledModels, setDraftEnabledModels] = useState<string[]>([])
   const [openRouterApiKeyInput, setOpenRouterApiKeyInput] = useState(() => getOpenRouterApiKey())
   const [openRouterApiKeyVisible, setOpenRouterApiKeyVisible] = useState(false)
@@ -794,52 +795,62 @@ const SettingsPage = ({
         </div>
         <div className="settings-group" role="list">
       <section className="settings-section" role="listitem">
-        <div className="accordion-content">
-          <div className="section-title">
+        <button
+          type="button"
+          className="collapse-header"
+          onClick={() => setOpenRouterKeySectionExpanded((current) => !current)}
+          aria-expanded={openRouterKeySectionExpanded}
+        >
+          <span className="section-title">
             <span className="section-icon" aria-hidden="true">🔑</span>
             <h2 className="ui-title">OpenRouter API Key</h2>
             <p>API Key 仅保存在本地浏览器，不会上传。更换设备/浏览器需要重新填写。清除浏览器数据会丢失。</p>
+          </span>
+          <span className="collapse-indicator" aria-hidden="true">›</span>
+        </button>
+        {openRouterKeySectionExpanded ? (
+          <div className="accordion-content">
+            <label htmlFor="openrouter-api-key">API Key</label>
+            <div className="model-select-row">
+              <input
+                id="openrouter-api-key"
+                type={openRouterApiKeyVisible ? 'text' : 'password'}
+                value={openRouterApiKeyInput}
+                onChange={(event) => {
+                  setOpenRouterApiKeyInput(event.target.value)
+                  setOpenRouterApiKeyStatus('idle')
+                }}
+                placeholder="sk-or-v1-..."
+              />
+              <button
+                type="button"
+                className="ghost small"
+                onClick={() => setOpenRouterApiKeyVisible((current) => !current)}
+              >
+                {openRouterApiKeyVisible ? '隐藏' : '显示'}
+              </button>
+            </div>
+            <div className="system-prompt-actions">
+              <button
+                type="button"
+                className="primary"
+                onClick={handleSaveOpenRouterApiKey}
+                disabled={!openRouterApiKeyInput.trim()}
+              >
+                保存
+              </button>
+              <button
+                type="button"
+                className="ghost danger"
+                onClick={handleClearOpenRouterApiKey}
+                disabled={!openRouterApiKeyInput.trim()}
+              >
+                清除
+              </button>
+              {openRouterApiKeyStatus === 'saved' ? <span className="system-prompt-status">已保存到本地</span> : null}
+            </div>
           </div>
-          <label htmlFor="openrouter-api-key">API Key</label>
-          <div className="model-select-row">
-            <input
-              id="openrouter-api-key"
-              type={openRouterApiKeyVisible ? 'text' : 'password'}
-              value={openRouterApiKeyInput}
-              onChange={(event) => {
-                setOpenRouterApiKeyInput(event.target.value)
-                setOpenRouterApiKeyStatus('idle')
-              }}
-              placeholder="sk-or-v1-..."
-            />
-            <button
-              type="button"
-              className="ghost small"
-              onClick={() => setOpenRouterApiKeyVisible((current) => !current)}
-            >
-              {openRouterApiKeyVisible ? '隐藏' : '显示'}
-            </button>
-          </div>
-          <div className="system-prompt-actions">
-            <button
-              type="button"
-              className="primary"
-              onClick={handleSaveOpenRouterApiKey}
-              disabled={!openRouterApiKeyInput.trim()}
-            >
-              保存
-            </button>
-            <button
-              type="button"
-              className="ghost danger"
-              onClick={handleClearOpenRouterApiKey}
-              disabled={!openRouterApiKeyInput.trim()}
-            >
-              清除
-            </button>
-            {openRouterApiKeyStatus === 'saved' ? <span className="system-prompt-status">已保存到本地</span> : null}
-          </div>
-        </div>
+        ) : null}
       </section>
       <section className="settings-section" role="listitem">
         <button
@@ -1031,7 +1042,7 @@ const SettingsPage = ({
           <span className="section-title">
             <span className="section-icon" aria-hidden="true">🔮</span>
             <h2 className="ui-title">思考链</h2>
-            <p>分别控制日常聊天与跑跑滚轮是否请求思考链。</p>
+            <p>分别控制日常聊天与RP区是否请求思考链。</p>
           </span>
           <span className="collapse-indicator" aria-hidden="true">›</span>
         </button>
@@ -1050,7 +1061,7 @@ const SettingsPage = ({
               </label>
             </div>
             <div className="field-group">
-              <label htmlFor="rpReasoningEnabled">跑跑滚轮思考链</label>
+              <label htmlFor="rpReasoningEnabled">RP区思考链</label>
               <label className="toggle-control">
                 <input
                   id="rpReasoningEnabled"
@@ -1074,7 +1085,7 @@ const SettingsPage = ({
               </label>
             </div>
             <div className="field-group">
-              <label htmlFor="rpHighReasoningEnabled">跑跑滚轮区/RP：高触发 Thinking（仅 GPT-5.1/5.2）</label>
+              <label htmlFor="rpHighReasoningEnabled">RP区：高触发 Thinking（仅 GPT-5.1/5.2）</label>
               <label className="toggle-control">
                 <input
                   id="rpHighReasoningEnabled"
