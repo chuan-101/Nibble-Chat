@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import ChatPage from './pages/ChatPage'
@@ -52,7 +52,6 @@ import RpRoomsPage from './pages/RpRoomsPage'
 import RpRoomPage from './pages/RpRoomPage'
 import HomePage from './pages/HomePage'
 import HomeLayoutSettingsPage from './pages/HomeLayoutSettingsPage'
-import { loadHomeSettings } from './storage/homeLayout'
 import {
   resolveSnackSystemOverlay,
   resolveSyzygyPostPrompt,
@@ -171,7 +170,6 @@ const buildRecentExtractionMessages = (
 
 const App = () => {
   const navigate = useNavigate()
-  const [appBackgroundImage, setAppBackgroundImage] = useState<string | null>(null)
   const [sessions, setSessions] = useState<ChatSession[]>(initialSnapshot.sessions)
   const [messages, setMessages] = useState<ChatMessage[]>(initialSnapshot.messages)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -223,25 +221,6 @@ const App = () => {
     ...feedAiConfigBase,
     model: resolveModelId('syzygy', { defaultModelId }),
   }), [defaultModelId, feedAiConfigBase])
-
-
-  useEffect(() => {
-    const applyHomeBackground = () => {
-      const cached = loadHomeSettings()
-      const nextBackground = cached?.homeBackgroundImageDataUrl ?? null
-      setAppBackgroundImage((current) => (current === nextBackground ? current : nextBackground))
-    }
-
-    applyHomeBackground()
-    window.addEventListener('hamster-home-settings-changed', applyHomeBackground)
-    window.addEventListener('storage', applyHomeBackground)
-
-    return () => {
-      window.removeEventListener('hamster-home-settings-changed', applyHomeBackground)
-      window.removeEventListener('storage', applyHomeBackground)
-    }
-  }, [])
-
   useEffect(() => {
     sessionsRef.current = sessions
   }, [sessions])
@@ -1317,10 +1296,7 @@ const App = () => {
 
 
   return (
-    <div
-      className="app-shell"
-      style={{ '--app-background-image': appBackgroundImage ? `url(${appBackgroundImage})` : 'none' } as CSSProperties}
-    >
+    <div className="app-shell">
       <Routes>
         <Route path="/auth" element={<AuthPage user={user} />} />
         <Route

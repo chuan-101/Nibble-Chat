@@ -24,11 +24,6 @@ export type AppIconConfig =
       type: 'emoji'
       emoji: string
     }
-  | {
-      type: 'image'
-      imageKey?: string
-      imageDataUrl?: string
-    }
 
 export type HomeSettingsState = {
   iconOrder: string[]
@@ -40,17 +35,16 @@ export type HomeSettingsState = {
   iconTileBgOpacity?: number
   pageOverlayColor?: string
   pageOverlayOpacity?: number
-  homeBackgroundImageKey?: string | null
-  homeBackgroundImageDataUrl?: string | null
   appIconConfigs?: Record<string, AppIconConfig>
 }
 
-const HOME_SETTINGS_STORAGE_KEY = 'hamster_home_settings_v1'
+const HOME_SETTINGS_STORAGE_KEY = 'nibble_ui_prefs_v1'
+const LEGACY_HOME_SETTINGS_STORAGE_KEY = 'hamster_home_settings_v1'
 const LEGACY_HOME_LAYOUT_STORAGE_KEY = 'hamster.home.layout.v1'
-const IMAGE_DB_NAME = 'hamster-home-db'
-const IMAGE_STORE_NAME = 'home_assets'
+const IMAGE_DB_NAME = 'nibble-widget-db'
+const IMAGE_STORE_NAME = 'widget_images'
 const IMAGE_DB_VERSION = 2
-const IMAGE_FALLBACK_STORAGE_KEY = 'hamster_home_assets_fallback_v1'
+const IMAGE_FALLBACK_STORAGE_KEY = 'nibble_widget_image_v1'
 const DATA_URL_PREFIX = 'data:image/'
 
 let schemaUpgradeLogged = false
@@ -222,11 +216,33 @@ const parseHomeSettings = (raw: string | null): HomeSettingsState | null => {
         }, [])
       : []
 
+    const normalizedIconConfigs =
+      parsed.appIconConfigs && typeof parsed.appIconConfigs === 'object'
+        ? Object.entries(parsed.appIconConfigs).reduce<Record<string, AppIconConfig>>(
+            (accumulator, [iconId, config]) => {
+              if (
+                config &&
+                typeof config === 'object' &&
+                (config as AppIconConfig).type === 'emoji' &&
+                typeof (config as AppIconConfig).emoji === 'string'
+              ) {
+                accumulator[iconId] = {
+                  type: 'emoji',
+                  emoji: (config as AppIconConfig).emoji,
+                }
+              }
+              return accumulator
+            },
+            {},
+          )
+        : undefined
+
     return {
       ...parsed,
       widgetOrder: Array.isArray(parsed.widgetOrder) ? parsed.widgetOrder : [],
       widgets: normalizedWidgets,
       checkinSize: parsed.checkinSize ?? '1x1',
+      appIconConfigs: normalizedIconConfigs,
     }
   } catch (error) {
     console.warn('解析 Home 配置失败', error)
@@ -238,6 +254,13 @@ export const loadHomeSettings = (): HomeSettingsState | null => {
   const current = parseHomeSettings(localStorage.getItem(HOME_SETTINGS_STORAGE_KEY))
   if (current) {
     return current
+  }
+
+  const legacyCurrent = parseHomeSettings(localStorage.getItem(LEGACY_HOME_SETTINGS_STORAGE_KEY))
+  if (legacyCurrent) {
+    localStorage.setItem(HOME_SETTINGS_STORAGE_KEY, JSON.stringify(legacyCurrent))
+    localStorage.removeItem(LEGACY_HOME_SETTINGS_STORAGE_KEY)
+    return legacyCurrent
   }
 
   const legacy = parseHomeSettings(localStorage.getItem(LEGACY_HOME_LAYOUT_STORAGE_KEY))
