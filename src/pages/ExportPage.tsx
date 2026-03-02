@@ -535,6 +535,8 @@ const ExportPage = ({ user }: { user: User | null }) => {
           {exporting ? '打包中…' : '打包我的藏品 / Pack My Hoard 📥✨'}
         </button>
       </section>
+
+      <p className="export-attribution">Built by chuan-101 on GitHub</p>
     </div>
   )
 }
