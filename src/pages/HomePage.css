@@ -2,12 +2,9 @@
   transition: none;
   --icon-tile-bg: rgba(255, 255, 255, 0.65);
   --page-overlay-bg: rgba(255, 255, 255, 0.2);
-  --home-background-image: none;
   padding: 1rem;
   align-items: center;
-  background:
-    var(--home-background-image) center / cover no-repeat,
-    var(--page-bg);
+  background: var(--page-bg);
 }
 
 .home-page__header {
@@ -483,13 +480,6 @@
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   font-size: clamp(1.35rem, 4.8vw, 1.8rem);
   overflow: hidden;
-}
-
-.icon-image {
-  width: calc(100% - 12px);
-  height: calc(100% - 12px);
-  object-fit: contain;
-  border-radius: 12px;
 }
 
 .icon-label {

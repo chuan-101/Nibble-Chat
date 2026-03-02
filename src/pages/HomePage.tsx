@@ -14,7 +14,6 @@ import {
   fetchRecentCheckins,
 } from "../storage/supabaseSync";
 import {
-  createImageKey,
   loadHomeSettings,
   loadImageDataUrl,
   removeImageData,
@@ -89,30 +88,6 @@ const hexToRgb = (hex: string) => {
   };
 };
 
-const processBackgroundImage = async (file: File): Promise<Blob> => {
-  const imageBitmap = await createImageBitmap(file);
-  const maxWidth = 1080;
-  const scale = Math.min(1, maxWidth / imageBitmap.width);
-  const targetWidth = Math.round(imageBitmap.width * scale);
-  const targetHeight = Math.round(imageBitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
-  const context = canvas.getContext("2d");
-  if (!context) {
-    imageBitmap.close();
-    return file;
-  }
-  context.drawImage(imageBitmap, 0, 0, targetWidth, targetHeight);
-  imageBitmap.close();
-
-  const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob((output) => resolve(output), "image/webp", 0.86);
-  });
-
-  return blob ?? file;
-};
-
 const readFileAsDataUrl = (file: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -176,6 +151,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     "settings",
   );
   const [notice, setNotice] = useState<string | null>(null);
+  const [prefsReady, setPrefsReady] = useState(false);
 
   const [iconOrder, setIconOrder] = useState<string[]>(DEFAULT_ICON_ORDER);
   const [widgetOrder, setWidgetOrder] = useState<string[]>([CORE_WIDGET_ID]);
@@ -195,26 +171,14 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
   const [pageOverlayOpacity, setPageOverlayOpacity] = useState(
     DEFAULT_PAGE_OVERLAY_OPACITY,
   );
-  const [homeBackgroundImageKey, setHomeBackgroundImageKey] = useState<
-    string | null
-  >(null);
-  const [homeBackgroundImageDataUrl, setHomeBackgroundImageDataUrl] = useState<
-    string | null
-  >(null);
-  const [backgroundUploading, setBackgroundUploading] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined"
       ? window.matchMedia("(max-width: 900px)").matches
       : true,
   );
   const [appIconConfigs, setAppIconConfigs] = useState<AppIconState>({});
-  const [appIconImageUrls, setAppIconImageUrls] = useState<
-    Record<string, string>
-  >({});
   const [editingIconId, setEditingIconId] = useState(DEFAULT_ICON_ORDER[0]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const homeBackgroundInputRef = useRef<HTMLInputElement | null>(null);
-  const appIconInputRef = useRef<HTMLInputElement | null>(null);
 
   const holdTimerRef = useRef<number | null>(null);
 
@@ -331,6 +295,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     const cached = loadHomeSettings();
     if (!cached) {
       setAppIconConfigs(defaultAppIconConfigs);
+      setPrefsReady(true);
       return;
     }
 
@@ -364,15 +329,25 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     setPageOverlayOpacity(
       cached.pageOverlayOpacity ?? DEFAULT_PAGE_OVERLAY_OPACITY,
     );
-    setHomeBackgroundImageKey(cached.homeBackgroundImageKey ?? null);
-    setHomeBackgroundImageDataUrl(cached.homeBackgroundImageDataUrl ?? null);
-    setAppIconConfigs({
-      ...defaultAppIconConfigs,
-      ...(cached.appIconConfigs ?? {}),
-    });
+    const nextIconConfigs = Object.fromEntries(
+      Object.entries({ ...defaultAppIconConfigs, ...(cached.appIconConfigs ?? {}) }).map(
+        ([id, config]) => [
+          id,
+          config?.type === "emoji"
+            ? { type: "emoji", emoji: config.emoji }
+            : defaultAppIconConfigs[id],
+        ],
+      ),
+    ) as AppIconState;
+    setAppIconConfigs(nextIconConfigs);
+    setPrefsReady(true);
   }, [defaultAppIconConfigs]);
 
   useEffect(() => {
+    if (!prefsReady) {
+      return;
+    }
+
     saveHomeSettings({
       iconOrder,
       widgetOrder,
@@ -383,15 +358,11 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
       iconTileBgOpacity,
       pageOverlayColor,
       pageOverlayOpacity,
-      homeBackgroundImageKey,
-      homeBackgroundImageDataUrl,
       appIconConfigs,
     });
   }, [
     appIconConfigs,
     checkinSize,
-    homeBackgroundImageKey,
-    homeBackgroundImageDataUrl,
     iconOrder,
     iconTileBgColor,
     iconTileBgOpacity,
@@ -400,6 +371,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     showEmptySlots,
     widgetOrder,
     widgets,
+    prefsReady,
   ]);
 
   useEffect(() => {
@@ -474,109 +446,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     });
   }, [widgets]);
 
-  useEffect(() => {
-    if (homeBackgroundImageDataUrl) {
-      if (homeBackgroundImageKey) {
-        imageCache.set(homeBackgroundImageKey, homeBackgroundImageDataUrl);
-      }
-      return;
-    }
 
-    if (!homeBackgroundImageKey) {
-      return;
-    }
-
-    const cached = imageCache.get(homeBackgroundImageKey);
-    if (cached && cached !== homeBackgroundImageDataUrl) {
-      setHomeBackgroundImageDataUrl(cached);
-    }
-
-    void loadImageDataUrl(homeBackgroundImageKey).then((dataUrl) => {
-      if (!dataUrl || dataUrl === homeBackgroundImageDataUrl) {
-        return;
-      }
-      imageCache.set(homeBackgroundImageKey, dataUrl);
-      setHomeBackgroundImageDataUrl(dataUrl);
-    });
-  }, [homeBackgroundImageDataUrl, homeBackgroundImageKey]);
-
-  useEffect(() => {
-    const iconEntries = Object.entries(appIconConfigs).flatMap(
-      ([id, config]) =>
-        config.type === "image"
-          ? [
-              {
-                id,
-                imageKey: config.imageKey,
-                imageDataUrl: config.imageDataUrl,
-              },
-            ]
-          : [],
-    );
-
-    const cachedEntries = iconEntries
-      .map(({ id, imageKey, imageDataUrl }) => {
-        if (typeof imageDataUrl === "string" && imageDataUrl.length > 0) {
-          if (imageKey) {
-            imageCache.set(imageKey, imageDataUrl);
-          }
-          return [id, imageDataUrl] as const;
-        }
-        if (!imageKey) {
-          return null;
-        }
-        const cached = imageCache.get(imageKey);
-        if (!cached) {
-          return null;
-        }
-        return [id, cached] as const;
-      })
-      .filter((entry): entry is readonly [string, string] => Boolean(entry));
-
-    if (cachedEntries.length > 0) {
-      setAppIconImageUrls((current) => {
-        const next = { ...current };
-        let changed = false;
-        cachedEntries.forEach(([id, url]) => {
-          if (next[id] !== url) {
-            next[id] = url;
-            changed = true;
-          }
-        });
-        return changed ? next : current;
-      });
-    }
-
-    void Promise.all(
-      iconEntries.map(async ({ id, imageKey, imageDataUrl }) => {
-        if (typeof imageDataUrl === "string" && imageDataUrl.length > 0) {
-          return { id, url: imageDataUrl };
-        }
-        if (!imageKey) {
-          return null;
-        }
-        const dataUrl = await loadImageDataUrl(imageKey);
-        if (!dataUrl) {
-          return null;
-        }
-        imageCache.set(imageKey, dataUrl);
-        return { id, url: dataUrl };
-      }),
-    ).then((results) => {
-      setAppIconImageUrls((current) => {
-        const next: Record<string, string> = {};
-        results.forEach((entry) => {
-          if (entry) {
-            next[entry.id] = entry.url;
-          }
-        });
-        const sameKeys =
-          Object.keys(next).length === Object.keys(current).length &&
-          Object.entries(next).every(([id, url]) => current[id] === url);
-        return sameKeys ? current : next;
-      });
-    });
-  }, [appIconConfigs]);
 
   const loadCheckinData = useCallback(async () => {
     if (!user) {
@@ -743,45 +613,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     setWidgetOrder((current) => current.filter((widgetId) => widgetId !== id));
   };
 
-  const handleHomeBackgroundSelected = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) {
-      return;
-    }
-
-    setBackgroundUploading(true);
-    try {
-      const processedBlob = await processBackgroundImage(file);
-      const dataUrl = await readFileAsDataUrl(processedBlob);
-      const imageKey = await saveImageDataUrl(dataUrl);
-      if (homeBackgroundImageKey) {
-        await removeImageData(homeBackgroundImageKey);
-      }
-      setHomeBackgroundImageKey(imageKey);
-      setHomeBackgroundImageDataUrl(dataUrl);
-      setNotice("背景图已更新");
-    } catch (error) {
-      console.warn("设置背景图失败", error);
-      setNotice("设置背景图失败，请稍后重试");
-    } finally {
-      setBackgroundUploading(false);
-    }
-  };
-
-  const handleRemoveHomeBackground = async () => {
-    if (!homeBackgroundImageKey && !homeBackgroundImageDataUrl) {
-      return;
-    }
-    if (homeBackgroundImageKey) {
-      await removeImageData(homeBackgroundImageKey);
-    }
-    setHomeBackgroundImageKey(null);
-    setHomeBackgroundImageDataUrl(null);
-    setNotice("已移除背景图");
-  };
 
   const handleEmojiChange = (iconId: string, emoji: string) => {
     setAppIconConfigs((current) => ({
@@ -793,44 +624,13 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     }));
   };
 
-  const handleAppIconImageSelected = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) {
-      return;
-    }
 
-    const iconId = editingIconId;
-    const previous = appIconConfigs[iconId];
-    try {
-      const imageDataUrl = await readFileAsDataUrl(file);
-      const key = createImageKey();
-      await saveImageDataUrl(imageDataUrl, key);
-      setAppIconConfigs((current) => ({
-        ...current,
-        [iconId]: { type: "image", imageKey: key, imageDataUrl },
-      }));
-      if (previous?.type === "image" && previous.imageKey) {
-        await removeImageData(previous.imageKey);
-      }
-    } catch (error) {
-      console.warn("保存图标失败", error);
-      setNotice("保存图标失败，请稍后重试");
-    }
-  };
-
-  const handleResetAppIcon = async (iconId: string) => {
-    const current = appIconConfigs[iconId];
+  const handleResetAppIcon = (iconId: string) => {
     const fallback = defaultAppIconConfigs[iconId] as {
       type: "emoji";
       emoji: string;
     };
     setAppIconConfigs((prev) => ({ ...prev, [iconId]: fallback }));
-    if (current?.type === "image" && current.imageKey) {
-      await removeImageData(current.imageKey);
-    }
   };
 
   const iconTileBackground = useMemo(() => {
@@ -895,9 +695,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
       className={`home-page app-shell ${isSettingsPage ? "home-page--settings" : ""}`}
       style={
         {
-          "--home-background-image": homeBackgroundImageDataUrl
-            ? `url(${homeBackgroundImageDataUrl})`
-            : "none",
           "--icon-tile-bg": iconTileBackground,
           "--page-overlay-bg": pageOverlayBackground,
         } as CSSProperties
@@ -1058,36 +855,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
                     }
                   />
                 </label>
-                <div className="background-controls">
-                  <span>背景图</span>
-                  <button
-                    type="button"
-                    className="ghost"
-                    onClick={() => homeBackgroundInputRef.current?.click()}
-                    disabled={backgroundUploading}
-                  >
-                    {backgroundUploading ? "上传中…" : "上传背景图"}
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost"
-                    onClick={() => void handleRemoveHomeBackground()}
-                    disabled={
-                      (!homeBackgroundImageKey &&
-                        !homeBackgroundImageDataUrl) ||
-                      backgroundUploading
-                    }
-                  >
-                    移除背景图
-                  </button>
-                </div>
-                <input
-                  ref={homeBackgroundInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(event) => void handleHomeBackgroundSelected(event)}
-                />
               </section>
             ) : null}
 
@@ -1130,25 +897,11 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
                   <button
                     type="button"
                     className="ghost"
-                    onClick={() => appIconInputRef.current?.click()}
-                  >
-                    上传本地图标
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost"
                     onClick={() => void handleResetAppIcon(editingIconId)}
                   >
                     恢复默认
                   </button>
                 </div>
-                <input
-                  ref={appIconInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(event) => void handleAppIconImageSelected(event)}
-                />
               </section>
             ) : null}
           </div>
@@ -1332,14 +1085,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
                       type: "emoji",
                       emoji: icon.defaultEmoji,
                     };
-                    const iconImageUrl =
-                      configured.type === "image"
-                        ? appIconImageUrls[iconId]
-                        : null;
-                    const emojiValue =
-                      configured.type === "emoji"
-                        ? configured.emoji
-                        : icon.defaultEmoji;
+                    const emojiValue = configured.emoji || icon.defaultEmoji;
 
                     return (
                       <div
@@ -1377,15 +1123,7 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
                           }}
                         >
                           <span className="icon-emoji">
-                            {iconImageUrl ? (
-                              <img
-                                src={iconImageUrl}
-                                alt={`${icon.label} 图标`}
-                                className="icon-image"
-                              />
-                            ) : (
-                              <span>{emojiValue}</span>
-                            )}
+                            <span>{emojiValue}</span>
                           </span>
                           <span className="icon-label">{icon.label}</span>
                         </button>
