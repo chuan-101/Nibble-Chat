@@ -33,6 +33,55 @@ type UserSettingsRow = {
   updated_at: string
 }
 
+type HighReasoningPrefs = {
+  chatHighReasoningEnabled: boolean
+  rpHighReasoningEnabled: boolean
+}
+
+const HIGH_REASONING_STORAGE_KEY = 'nibble_high_reasoning_prefs_v1'
+
+const loadHighReasoningPrefsMap = (): Record<string, HighReasoningPrefs> => {
+  if (typeof window === 'undefined') {
+    return {}
+  }
+  try {
+    const raw = window.localStorage.getItem(HIGH_REASONING_STORAGE_KEY)
+    if (!raw) {
+      return {}
+    }
+    const parsed = JSON.parse(raw) as Record<string, HighReasoningPrefs>
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+const saveHighReasoningPrefs = (userId: string, prefs: HighReasoningPrefs) => {
+  if (typeof window === 'undefined') {
+    return
+  }
+  const current = loadHighReasoningPrefsMap()
+  current[userId] = prefs
+  window.localStorage.setItem(HIGH_REASONING_STORAGE_KEY, JSON.stringify(current))
+}
+
+const resolveHighReasoningPrefs = (userId: string): HighReasoningPrefs => {
+  const stored = loadHighReasoningPrefsMap()[userId]
+  return {
+    chatHighReasoningEnabled: stored?.chatHighReasoningEnabled ?? false,
+    rpHighReasoningEnabled: stored?.rpHighReasoningEnabled ?? false,
+  }
+}
+
+const applyHighReasoningPrefs = (settings: UserSettings): UserSettings => {
+  const prefs = resolveHighReasoningPrefs(settings.userId)
+  return {
+    ...settings,
+    chatHighReasoningEnabled: prefs.chatHighReasoningEnabled,
+    rpHighReasoningEnabled: prefs.rpHighReasoningEnabled,
+  }
+}
+
 const defaultModel = 'openrouter/auto'
 
 export const createDefaultSettings = (userId: string): UserSettings => ({
@@ -55,31 +104,38 @@ export const createDefaultSettings = (userId: string): UserSettings => ({
   syzygyReplySystemPrompt: DEFAULT_SYZYGY_REPLY_PROMPT,
   chatReasoningEnabled: true,
   rpReasoningEnabled: false,
+  chatHighReasoningEnabled: false,
+  rpHighReasoningEnabled: false,
   updatedAt: new Date().toISOString(),
 })
 
-const mapSettingsRow = (row: UserSettingsRow): UserSettings => ({
-  userId: row.user_id,
-  enabledModels: row.enabled_models ?? [defaultModel],
-  defaultModel: row.default_model ?? defaultModel,
-  compressionEnabled: row.compression_enabled ?? true,
-  compressionTriggerRatio: row.compression_trigger_ratio ?? 0.65,
-  compressionKeepRecentMessages: row.compression_keep_recent_messages ?? 20,
-  summarizerModel: row.summarizer_model?.trim() ? row.summarizer_model : null,
-  memoryExtractModel: row.memory_extract_model?.trim() ? row.memory_extract_model : null,
-  memoryMergeEnabled: row.memory_merge_enabled ?? true,
-  memoryAutoExtractEnabled: row.memory_auto_extract_enabled ?? false,
-  temperature: row.temperature ?? 0.7,
-  topP: row.top_p ?? 0.9,
-  maxTokens: row.max_tokens ?? 1024,
-  systemPrompt: row.system_prompt ?? '',
-  snackSystemOverlay: resolveSnackSystemOverlay(row.user_home_system_prompt),
-  syzygyPostSystemPrompt: resolveSyzygyPostPrompt(row.assistant_post_system_prompt),
-  syzygyReplySystemPrompt: resolveSyzygyReplyPrompt(row.assistant_reply_system_prompt),
-  chatReasoningEnabled: row.chat_reasoning_enabled ?? row.enable_reasoning ?? true,
-  rpReasoningEnabled: row.rp_reasoning_enabled ?? false,
-  updatedAt: row.updated_at,
-})
+const mapSettingsRow = (row: UserSettingsRow): UserSettings => {
+  const highReasoningPrefs = resolveHighReasoningPrefs(row.user_id)
+  return {
+    userId: row.user_id,
+    enabledModels: row.enabled_models ?? [defaultModel],
+    defaultModel: row.default_model ?? defaultModel,
+    compressionEnabled: row.compression_enabled ?? true,
+    compressionTriggerRatio: row.compression_trigger_ratio ?? 0.65,
+    compressionKeepRecentMessages: row.compression_keep_recent_messages ?? 20,
+    summarizerModel: row.summarizer_model?.trim() ? row.summarizer_model : null,
+    memoryExtractModel: row.memory_extract_model?.trim() ? row.memory_extract_model : null,
+    memoryMergeEnabled: row.memory_merge_enabled ?? true,
+    memoryAutoExtractEnabled: row.memory_auto_extract_enabled ?? false,
+    temperature: row.temperature ?? 0.7,
+    topP: row.top_p ?? 0.9,
+    maxTokens: row.max_tokens ?? 1024,
+    systemPrompt: row.system_prompt ?? '',
+    snackSystemOverlay: resolveSnackSystemOverlay(row.user_home_system_prompt),
+    syzygyPostSystemPrompt: resolveSyzygyPostPrompt(row.assistant_post_system_prompt),
+    syzygyReplySystemPrompt: resolveSyzygyReplyPrompt(row.assistant_reply_system_prompt),
+    chatReasoningEnabled: row.chat_reasoning_enabled ?? row.enable_reasoning ?? true,
+    rpReasoningEnabled: row.rp_reasoning_enabled ?? false,
+    chatHighReasoningEnabled: highReasoningPrefs.chatHighReasoningEnabled,
+    rpHighReasoningEnabled: highReasoningPrefs.rpHighReasoningEnabled,
+    updatedAt: row.updated_at,
+  }
+}
 
 export const ensureUserSettings = async (userId: string): Promise<UserSettings> => {
   if (!supabase) {
@@ -130,9 +186,9 @@ export const ensureUserSettings = async (userId: string): Promise<UserSettings> 
     if (insertError || !inserted) {
       throw insertError ?? new Error('初始化设置失败')
     }
-    return mapSettingsRow(inserted as UserSettingsRow)
+    return applyHighReasoningPrefs(mapSettingsRow(inserted as UserSettingsRow))
   }
-  return mapSettingsRow(data as UserSettingsRow)
+  return applyHighReasoningPrefs(mapSettingsRow(data as UserSettingsRow))
 }
 
 export const updateUserSettings = async (settings: UserSettings): Promise<void> => {
@@ -168,6 +224,10 @@ export const updateUserSettings = async (settings: UserSettings): Promise<void> 
   if (error) {
     throw error
   }
+  saveHighReasoningPrefs(settings.userId, {
+    chatHighReasoningEnabled: settings.chatHighReasoningEnabled,
+    rpHighReasoningEnabled: settings.rpHighReasoningEnabled,
+  })
 }
 
 export const saveSnackSystemPrompt = async (userId: string, value: string): Promise<void> => {

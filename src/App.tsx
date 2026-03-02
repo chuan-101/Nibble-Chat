@@ -59,6 +59,7 @@ import {
 } from './constants/aiOverlays'
 import { resolveModelId } from './utils/modelResolver'
 import { fetchOpenRouter } from './api/openrouter'
+import { isGpt5Auto } from './utils/openrouterReasoning'
 
 const sortSessions = (sessions: ChatSession[]) =>
   [...sessions].sort(
@@ -833,6 +834,15 @@ const App = () => {
               budget_tokens: Math.max(256, Math.min(1024, maxTokens)),
             }
           }
+          if (
+            reasoningEnabled &&
+            activeSettings.chatHighReasoningEnabled &&
+            isGpt5Auto(effectiveModel)
+          ) {
+            requestBody.reasoning = {
+              effort: 'high',
+            }
+          }
           const controller = new AbortController()
           streamingControllerRef.current?.abort()
           streamingControllerRef.current = controller
@@ -1415,7 +1425,13 @@ const App = () => {
           path="/rp/:sessionId"
           element={
             <RequireAuth ready={authReady} user={user}>
-              <RpRoomPage user={user} mode="chat" rpReasoningEnabled={activeSettings.rpReasoningEnabled} onDisableRpReasoning={handleDisableRpReasoning} />
+              <RpRoomPage
+                user={user}
+                mode="chat"
+                rpReasoningEnabled={activeSettings.rpReasoningEnabled}
+                rpHighReasoningEnabled={activeSettings.rpHighReasoningEnabled}
+                onDisableRpReasoning={handleDisableRpReasoning}
+              />
             </RequireAuth>
           }
         />
@@ -1423,7 +1439,13 @@ const App = () => {
           path="/rp/:sessionId/dashboard"
           element={
             <RequireAuth ready={authReady} user={user}>
-              <RpRoomPage user={user} mode="dashboard" rpReasoningEnabled={activeSettings.rpReasoningEnabled} onDisableRpReasoning={handleDisableRpReasoning} />
+              <RpRoomPage
+                user={user}
+                mode="dashboard"
+                rpReasoningEnabled={activeSettings.rpReasoningEnabled}
+                rpHighReasoningEnabled={activeSettings.rpHighReasoningEnabled}
+                onDisableRpReasoning={handleDisableRpReasoning}
+              />
             </RequireAuth>
           }
         />
