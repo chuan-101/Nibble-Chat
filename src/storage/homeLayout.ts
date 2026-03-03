@@ -33,8 +33,6 @@ export type HomeSettingsState = {
   showEmptySlots?: boolean
   iconTileBgColor?: string
   iconTileBgOpacity?: number
-  pageOverlayColor?: string
-  pageOverlayOpacity?: number
   appIconConfigs?: Record<string, AppIconConfig>
 }
 
