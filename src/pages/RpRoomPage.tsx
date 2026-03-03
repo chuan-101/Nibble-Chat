@@ -39,7 +39,6 @@ type NpcFormState = {
   model: string
   temperature: string
   topP: string
-  apiBaseUrl: string
   enabled: boolean
 }
 
@@ -61,7 +60,6 @@ const createEmptyNpcForm = (): NpcFormState => ({
   model: '',
   temperature: '',
   topP: '',
-  apiBaseUrl: '',
   enabled: false,
 })
 
@@ -107,7 +105,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [actionsMenuPosition, setActionsMenuPosition] = useState<{ top: number; left: number } | null>(null)
   const [playerDisplayNameInput, setPlayerDisplayNameInput] = useState('我')
-  const [playerAvatarUrlInput, setPlayerAvatarUrlInput] = useState('')
   const [worldbookTextInput, setWorldbookTextInput] = useState('')
   const [keepRecentMessagesInput, setKeepRecentMessagesInput] = useState(String(RP_ROOM_KEEP_RECENT_MESSAGES_DEFAULT))
   const [contextTokenLimitInput, setContextTokenLimitInput] = useState(String(RP_ROOM_CONTEXT_TOKEN_LIMIT_DEFAULT))
@@ -195,7 +192,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
       return
     }
     setPlayerDisplayNameInput(room.playerDisplayName?.trim() || '我')
-    setPlayerAvatarUrlInput(room.playerAvatarUrl ?? '')
     setWorldbookTextInput(room.worldbookText ?? '')
     setKeepRecentMessagesInput(String(readRoomKeepRecentMessages(room.rpKeepRecentMessages)))
     setContextTokenLimitInput(String(readRoomContextTokenLimit(room.rpContextTokenLimit)))
@@ -695,7 +691,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
     setError(null)
     setNotice(null)
     const normalizedDisplayName = playerDisplayNameInput.trim() || '我'
-    const normalizedAvatar = playerAvatarUrlInput.trim()
     const parsedKeepRecentMessages = Number.parseInt(keepRecentMessagesInput, 10)
     const parsedContextTokenLimit = Number.parseInt(contextTokenLimitInput, 10)
     if (Number.isNaN(parsedKeepRecentMessages)) {
@@ -725,7 +720,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
       }
       const updated = await updateRpSessionDashboard(room.id, {
         playerDisplayName: normalizedDisplayName,
-        playerAvatarUrl: normalizedAvatar,
         settings: nextSettings,
         rpKeepRecentMessages: parsedKeepRecentMessages,
         rpContextTokenLimit: parsedContextTokenLimit,
@@ -838,7 +832,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
             : '',
       temperature: typeof card.modelConfig.temperature === 'number' ? String(card.modelConfig.temperature) : '',
       topP: typeof card.modelConfig.top_p === 'number' ? String(card.modelConfig.top_p) : '',
-      apiBaseUrl: typeof card.apiConfig.base_url === 'string' ? card.apiConfig.base_url : '',
       enabled: card.enabled,
     })
   }
@@ -872,11 +865,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
       modelConfig.top_p = Number(npcForm.topP)
     }
 
-    const apiConfig: Record<string, unknown> = {}
-    if (npcForm.apiBaseUrl.trim()) {
-      apiConfig.base_url = npcForm.apiBaseUrl.trim()
-    }
-
     setSavingNpc(true)
     setError(null)
     setNotice(null)
@@ -888,7 +876,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
           displayName,
           systemPrompt: npcForm.systemPrompt,
           modelConfig,
-          apiConfig,
           enabled: nextEnabled,
         })
         setNpcCards((current) => [...current, created])
@@ -897,7 +884,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
           displayName,
           systemPrompt: npcForm.systemPrompt,
           modelConfig,
-          apiConfig,
           enabled: nextEnabled,
         })
         setNpcCards((current) => current.map((item) => (item.id === editingNpcId ? updated : item)))
@@ -998,15 +984,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
             value={playerDisplayNameInput}
             onChange={(event) => setPlayerDisplayNameInput(event.target.value)}
             placeholder="我"
-          />
-        </label>
-        <label>
-          玩家头像URL
-          <input
-            type="url"
-            value={playerAvatarUrlInput}
-            onChange={(event) => setPlayerAvatarUrlInput(event.target.value)}
-            placeholder="https://example.com/avatar.png"
           />
         </label>
         <label>
@@ -1140,15 +1117,6 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
                 />
               </label>
             </div>
-            <label>
-              API Base URL
-              <input
-                type="url"
-                value={npcForm.apiBaseUrl}
-                onChange={(event) => setNpcForm((current) => ({ ...current, apiBaseUrl: event.target.value }))}
-                placeholder="可选"
-              />
-            </label>
             <label className="rp-npc-enabled-toggle">
               <input
                 type="checkbox"
