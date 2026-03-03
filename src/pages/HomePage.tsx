@@ -62,8 +62,6 @@ const CORE_WIDGET_ID = "widget-checkin";
 const MAX_WIDGETS = 6;
 const DEFAULT_ICON_TILE_BG_COLOR = "#ffffff";
 const DEFAULT_ICON_TILE_BG_OPACITY = 0.65;
-const DEFAULT_PAGE_OVERLAY_COLOR = "#ffffff";
-const DEFAULT_PAGE_OVERLAY_OPACITY = 0.2;
 
 const imageCache = new Map<string, string>();
 
@@ -164,12 +162,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
   );
   const [iconTileBgOpacity, setIconTileBgOpacity] = useState(
     DEFAULT_ICON_TILE_BG_OPACITY,
-  );
-  const [pageOverlayColor, setPageOverlayColor] = useState(
-    DEFAULT_PAGE_OVERLAY_COLOR,
-  );
-  const [pageOverlayOpacity, setPageOverlayOpacity] = useState(
-    DEFAULT_PAGE_OVERLAY_OPACITY,
   );
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
     typeof window !== "undefined"
@@ -325,10 +317,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     setIconTileBgOpacity(
       cached.iconTileBgOpacity ?? DEFAULT_ICON_TILE_BG_OPACITY,
     );
-    setPageOverlayColor(cached.pageOverlayColor ?? DEFAULT_PAGE_OVERLAY_COLOR);
-    setPageOverlayOpacity(
-      cached.pageOverlayOpacity ?? DEFAULT_PAGE_OVERLAY_OPACITY,
-    );
     const nextIconConfigs = Object.fromEntries(
       Object.entries({ ...defaultAppIconConfigs, ...(cached.appIconConfigs ?? {}) }).map(
         ([id, config]) => [
@@ -356,8 +344,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
       showEmptySlots,
       iconTileBgColor,
       iconTileBgOpacity,
-      pageOverlayColor,
-      pageOverlayOpacity,
       appIconConfigs,
     });
   }, [
@@ -366,8 +352,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     iconOrder,
     iconTileBgColor,
     iconTileBgOpacity,
-    pageOverlayColor,
-    pageOverlayOpacity,
     showEmptySlots,
     widgetOrder,
     widgets,
@@ -638,11 +622,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
     return `rgba(${r}, ${g}, ${b}, ${iconTileBgOpacity})`;
   }, [iconTileBgColor, iconTileBgOpacity]);
 
-  const pageOverlayBackground = useMemo(() => {
-    const { r, g, b } = hexToRgb(pageOverlayColor);
-    return `rgba(${r}, ${g}, ${b}, ${pageOverlayOpacity})`;
-  }, [pageOverlayColor, pageOverlayOpacity]);
-
   const orderedWidgetItems = useMemo<RenderedWidgetItem[]>(() => {
     const widgetMap = new Map(widgets.map((widget) => [widget.id, widget]));
     return widgetOrder
@@ -696,7 +675,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
       style={
         {
           "--icon-tile-bg": iconTileBackground,
-          "--page-overlay-bg": pageOverlayBackground,
         } as CSSProperties
       }
     >
@@ -829,29 +807,6 @@ const HomePage = ({ user, onOpenChat, mode = "default" }: HomePageProps) => {
                     value={Math.round(iconTileBgOpacity * 100)}
                     onChange={(event) =>
                       setIconTileBgOpacity(Number(event.target.value) / 100)
-                    }
-                  />
-                </label>
-                <label>
-                  面板颜色
-                  <input
-                    type="color"
-                    value={pageOverlayColor}
-                    onChange={(event) =>
-                      setPageOverlayColor(event.target.value)
-                    }
-                  />
-                </label>
-                <label>
-                  面板透明度 {Math.round(pageOverlayOpacity * 100)}%
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={Math.round(pageOverlayOpacity * 100)}
-                    onChange={(event) =>
-                      setPageOverlayOpacity(Number(event.target.value) / 100)
                     }
                   />
                 </label>
