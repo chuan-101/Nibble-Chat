@@ -7,17 +7,13 @@ import {
   setLocalSupabaseConfig,
 } from '../supabase/client'
 import { readLocalSupabaseConfig } from '../storage/supabaseConfig'
+import { getSupabaseProjectInputDisplay, normalizeSupabaseProjectInput } from '../utils/supabaseProjectInput'
 import './SupabaseSetupPage.css'
-
-const isValidSupabaseUrl = (value: string) => {
-  const trimmed = value.trim()
-  return trimmed.startsWith('https://') && trimmed.includes('.supabase.co')
-}
 
 const SupabaseSetupPage = () => {
   const navigate = useNavigate()
   const localConfig = useMemo(() => readLocalSupabaseConfig(), [])
-  const [url, setUrl] = useState(localConfig?.url ?? '')
+  const [projectInput, setProjectInput] = useState(localConfig ? getSupabaseProjectInputDisplay(localConfig.url) : '')
   const [anonKey, setAnonKey] = useState(localConfig?.anonKey ?? '')
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
@@ -26,10 +22,10 @@ const SupabaseSetupPage = () => {
   const configured = hasSupabaseConfig()
 
   const handleSave = () => {
-    const trimmedUrl = url.trim()
+    const normalizedProject = normalizeSupabaseProjectInput(projectInput)
     const trimmedAnonKey = anonKey.trim()
-    if (!isValidSupabaseUrl(trimmedUrl)) {
-      setError('请输入有效的 Supabase Project URL（需以 https:// 开头并包含 .supabase.co）。')
+    if ('error' in normalizedProject) {
+      setError(normalizedProject.error)
       setStatus(null)
       return
     }
@@ -38,7 +34,7 @@ const SupabaseSetupPage = () => {
       setStatus(null)
       return
     }
-    setLocalSupabaseConfig({ url: trimmedUrl, anonKey: trimmedAnonKey })
+    setLocalSupabaseConfig({ url: normalizedProject.url, anonKey: trimmedAnonKey })
     setError(null)
     setStatus('配置已保存。')
     navigate('/auth', { replace: true })
@@ -48,7 +44,7 @@ const SupabaseSetupPage = () => {
     removeLocalSupabaseConfig()
     setStatus('已清除本地 Supabase 配置。')
     setError(null)
-    setUrl('')
+    setProjectInput('')
     setAnonKey('')
   }
 
@@ -64,12 +60,13 @@ const SupabaseSetupPage = () => {
           </p>
         ) : null}
         <label className="field">
-          <span className="field-label">Supabase Project URL</span>
+          <span className="field-label">Supabase Project ID (ref)</span>
+          <span className="setup-note">只需填写 Project ID（ref）。系统会自动生成 https://&#123;ref&#125;.supabase.co</span>
           <input
-            type="url"
-            placeholder="https://xxxx.supabase.co"
-            value={url}
-            onChange={(event) => setUrl(event.target.value)}
+            type="text"
+            placeholder="gugyzgigttcyytrgxeqi"
+            value={projectInput}
+            onChange={(event) => setProjectInput(event.target.value)}
           />
         </label>
         <label className="field">

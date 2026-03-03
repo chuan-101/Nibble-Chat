@@ -3,16 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import { removeLocalSupabaseConfig, setLocalSupabaseConfig, supabase } from '../supabase/client'
 import { readLocalSupabaseConfig } from '../storage/supabaseConfig'
+import { getSupabaseProjectInputDisplay, normalizeSupabaseProjectInput } from '../utils/supabaseProjectInput'
 import './AuthPage.css'
 
 type AuthPageProps = {
   user: User | null
   supabaseConfigured: boolean
-}
-
-const isValidSupabaseUrl = (value: string) => {
-  const trimmed = value.trim()
-  return trimmed.startsWith('https://') && trimmed.includes('.supabase.co')
 }
 
 const AuthPage = ({ user, supabaseConfigured }: AuthPageProps) => {
@@ -23,14 +19,14 @@ const AuthPage = ({ user, supabaseConfigured }: AuthPageProps) => {
   const [sending, setSending] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [activePanel, setActivePanel] = useState<'login' | 'setup'>('login')
-  const [setupUrl, setSetupUrl] = useState('')
+  const [setupProjectInput, setSetupProjectInput] = useState('')
   const [setupAnonKey, setSetupAnonKey] = useState('')
   const navigate = useNavigate()
 
 
   const openSetupPanel = useCallback(() => {
     const localConfig = readLocalSupabaseConfig()
-    setSetupUrl(localConfig?.url ?? '')
+    setSetupProjectInput(localConfig ? getSupabaseProjectInputDisplay(localConfig.url) : '')
     setSetupAnonKey(localConfig?.anonKey ?? '')
     setActivePanel('setup')
   }, [])
@@ -125,10 +121,10 @@ const AuthPage = ({ user, supabaseConfigured }: AuthPageProps) => {
   }, [email, otp, supabaseConfigured])
 
   const handleSaveSetup = useCallback(() => {
-    const trimmedUrl = setupUrl.trim()
+    const normalizedProject = normalizeSupabaseProjectInput(setupProjectInput)
     const trimmedAnonKey = setupAnonKey.trim()
-    if (!isValidSupabaseUrl(trimmedUrl)) {
-      setError('请输入有效的 Supabase Project URL（需以 https:// 开头并包含 .supabase.co）。')
+    if ('error' in normalizedProject) {
+      setError(normalizedProject.error)
       setStatus(null)
       return
     }
@@ -137,15 +133,15 @@ const AuthPage = ({ user, supabaseConfigured }: AuthPageProps) => {
       setStatus(null)
       return
     }
-    setLocalSupabaseConfig({ url: trimmedUrl, anonKey: trimmedAnonKey })
+    setLocalSupabaseConfig({ url: normalizedProject.url, anonKey: trimmedAnonKey })
     setActivePanel('login')
     setError(null)
     setStatus('配置已保存，可继续发送验证码登录。')
-  }, [setupAnonKey, setupUrl])
+  }, [setupAnonKey, setupProjectInput])
 
   const handleClearSetup = useCallback(() => {
     removeLocalSupabaseConfig()
-    setSetupUrl('')
+    setSetupProjectInput('')
     setSetupAnonKey('')
     setError(null)
     setStatus('已清除本地 Supabase 配置，请重新配置后再登录。')
@@ -227,13 +223,14 @@ const AuthPage = ({ user, supabaseConfigured }: AuthPageProps) => {
             <p className="subtitle">请填写你的 Supabase 项目连接信息</p>
             <p className="setup-helper">配置仅保存在本地浏览器，不会上传。更换设备需要重新填写。</p>
             <label className="field">
-              <span className="field-label">Supabase Project URL</span>
+              <span className="field-label">Supabase Project ID (ref)</span>
+              <span className="setup-helper">只需填写 Project ID（ref）。系统会自动生成 https://&#123;ref&#125;.supabase.co</span>
               <div className="input-shell">
                 <input
-                  type="url"
-                  placeholder="https://xxxx.supabase.co"
-                  value={setupUrl}
-                  onChange={(event) => setSetupUrl(event.target.value)}
+                  type="text"
+                  placeholder="gugyzgigttcyytrgxeqi"
+                  value={setupProjectInput}
+                  onChange={(event) => setSetupProjectInput(event.target.value)}
                 />
               </div>
             </label>
