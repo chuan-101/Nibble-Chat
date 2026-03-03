@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import ChatPage from './pages/ChatPage'
 import AuthPage from './pages/AuthPage'
 import SessionsDrawer from './components/SessionsDrawer'
@@ -172,7 +172,6 @@ const buildRecentExtractionMessages = (
 
 const App = () => {
   const navigate = useNavigate()
-  const location = useLocation()
   const [sessions, setSessions] = useState<ChatSession[]>(initialSnapshot.sessions)
   const [messages, setMessages] = useState<ChatMessage[]>(initialSnapshot.messages)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -287,12 +286,6 @@ const App = () => {
       data.subscription.unsubscribe()
     }
   }, [supabaseConfigured])
-
-  useEffect(() => {
-    if (!supabaseConfigured && location.pathname !== '/setup') {
-      navigate('/setup', { replace: true })
-    }
-  }, [location.pathname, navigate, supabaseConfigured])
 
   useEffect(() => {
     if (!authReady) {
@@ -1322,12 +1315,24 @@ const App = () => {
   return (
     <div className="app-shell">
       <Routes>
-        <Route path="/setup" element={<SupabaseSetupPage />} />
-        <Route path="/auth" element={<AuthPage user={user} />} />
+        <Route
+          path="/setup"
+          element={
+            supabaseConfigured ? <Navigate to={user ? '/' : '/auth'} replace /> : <SupabaseSetupPage />
+          }
+        />
+        <Route
+          path="/auth"
+          element={
+            <RequireSupabaseSetup configured={supabaseConfigured}>
+              <AuthPage user={user} />
+            </RequireSupabaseSetup>
+          }
+        />
         <Route
           path="/"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <HomePage
                 user={user}
                 onOpenChat={() => {
@@ -1351,7 +1356,7 @@ const App = () => {
         <Route
           path="/home-layout"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <HomeLayoutSettingsPage
                 user={user}
                 onOpenChat={() => {
@@ -1371,7 +1376,7 @@ const App = () => {
         <Route
           path="/chat"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <NewSessionRedirect
                 sessions={sessions}
                 sessionsReady={sessionsReady}
@@ -1383,7 +1388,7 @@ const App = () => {
         <Route
           path="/chat/:sessionId"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <ChatRoute
                 sessions={sessions}
                 messages={messages}
@@ -1415,7 +1420,7 @@ const App = () => {
         <Route
           path="/checkin"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <CheckinPage user={user} />
             </RequireAuth>
           }
@@ -1423,7 +1428,7 @@ const App = () => {
         <Route
           path="/export"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <ExportPage user={user} />
             </RequireAuth>
           }
@@ -1431,7 +1436,7 @@ const App = () => {
         <Route
           path="/rp"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <RpRoomsPage user={user} />
             </RequireAuth>
           }
@@ -1439,7 +1444,7 @@ const App = () => {
         <Route
           path="/rp/:sessionId"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <RpRoomPage
                 user={user}
                 mode="chat"
@@ -1453,7 +1458,7 @@ const App = () => {
         <Route
           path="/rp/:sessionId/dashboard"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <RpRoomPage
                 user={user}
                 mode="dashboard"
@@ -1467,7 +1472,7 @@ const App = () => {
         <Route
           path="/settings"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <SettingsPage
                 user={user}
                 settings={userSettings}
@@ -1484,7 +1489,7 @@ const App = () => {
         <Route
           path="/snacks"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <MyHomePage user={user} snackAiConfig={snackAiConfig} />
             </RequireAuth>
           }
@@ -1493,7 +1498,7 @@ const App = () => {
         <Route
           path="/memory-vault"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <MemoryVaultPage
                 recentMessages={buildRecentExtractionMessages(
                   activeChatSessionId ?? latestSession?.id ?? '',
@@ -1509,26 +1514,47 @@ const App = () => {
         <Route
           path="/syzygy"
           element={
-            <RequireAuth ready={authReady} user={user}>
+            <RequireAuth ready={authReady} user={user} configured={supabaseConfigured}>
               <AssistantHomePage user={user} snackAiConfig={syzygyAiConfig} />
             </RequireAuth>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="*"
+          element={<Navigate to={supabaseConfigured ? '/' : '/setup'} replace />}
+        />
       </Routes>
     </div>
   )
 }
 
+const RequireSupabaseSetup = ({
+  configured,
+  children,
+}: {
+  configured: boolean
+  children: ReactNode
+}) => {
+  if (!configured) {
+    return <Navigate to="/setup" replace />
+  }
+  return children
+}
+
 const RequireAuth = ({
   ready,
   user,
+  configured,
   children,
 }: {
   ready: boolean
   user: User | null
+  configured: boolean
   children: ReactNode
 }) => {
+  if (!configured) {
+    return <Navigate to="/setup" replace />
+  }
   if (!ready) {
     return (
       <div className="loading-state">
