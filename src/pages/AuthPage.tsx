@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
-import { hasSupabaseConfig, supabase } from '../supabase/client'
+import { supabase } from '../supabase/client'
 import './AuthPage.css'
 
 type AuthPageProps = {
@@ -18,10 +18,6 @@ const AuthPage = ({ user }: AuthPageProps) => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!hasSupabaseConfig()) {
-      navigate('/setup', { replace: true })
-      return
-    }
     if (!supabase) {
       return
     }
@@ -52,7 +48,7 @@ const AuthPage = ({ user }: AuthPageProps) => {
       return
     }
     if (!supabase) {
-      setError('请先在设置页填写你的 Supabase URL 和 anon key。')
+      setError('服务暂不可用，请稍后重试。')
       return
     }
     setSending(true)
@@ -81,7 +77,7 @@ const AuthPage = ({ user }: AuthPageProps) => {
       return
     }
     if (!supabase) {
-      setError('请先在设置页填写你的 Supabase URL 和 anon key。')
+      setError('服务暂不可用，请稍后重试。')
       return
     }
     setVerifying(true)
@@ -102,7 +98,7 @@ const AuthPage = ({ user }: AuthPageProps) => {
 
   const handleLogout = useCallback(async () => {
     if (!supabase) {
-      setError('请先在设置页填写你的 Supabase URL 和 anon key。')
+      setError('服务暂不可用，请稍后重试。')
       return
     }
     setError(null)
