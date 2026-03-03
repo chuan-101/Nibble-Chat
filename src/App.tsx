@@ -52,7 +52,6 @@ import RpRoomsPage from './pages/RpRoomsPage'
 import RpRoomPage from './pages/RpRoomPage'
 import HomePage from './pages/HomePage'
 import HomeLayoutSettingsPage from './pages/HomeLayoutSettingsPage'
-import SupabaseSetupPage from './pages/SupabaseSetupPage'
 import {
   resolveSnackSystemOverlay,
   resolveSyzygyPostPrompt,
@@ -1318,15 +1317,13 @@ const App = () => {
         <Route
           path="/setup"
           element={
-            supabaseConfigured ? <Navigate to={user ? '/' : '/auth'} replace /> : <SupabaseSetupPage />
+            <Navigate to="/auth" replace />
           }
         />
         <Route
           path="/auth"
           element={
-            <RequireSupabaseSetup configured={supabaseConfigured}>
-              <AuthPage user={user} />
-            </RequireSupabaseSetup>
+            <AuthPage user={user} supabaseConfigured={supabaseConfigured} />
           }
         />
         <Route
@@ -1521,24 +1518,11 @@ const App = () => {
         />
         <Route
           path="*"
-          element={<Navigate to={supabaseConfigured ? '/' : '/setup'} replace />}
+          element={<Navigate to={supabaseConfigured ? '/' : '/auth'} replace />}
         />
       </Routes>
     </div>
   )
-}
-
-const RequireSupabaseSetup = ({
-  configured,
-  children,
-}: {
-  configured: boolean
-  children: ReactNode
-}) => {
-  if (!configured) {
-    return <Navigate to="/setup" replace />
-  }
-  return children
 }
 
 const RequireAuth = ({
@@ -1553,7 +1537,7 @@ const RequireAuth = ({
   children: ReactNode
 }) => {
   if (!configured) {
-    return <Navigate to="/setup" replace />
+    return <Navigate to="/auth" replace />
   }
   if (!ready) {
     return (

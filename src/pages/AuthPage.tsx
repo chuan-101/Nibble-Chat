@@ -1,21 +1,39 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
-import { supabase } from '../supabase/client'
+import { removeLocalSupabaseConfig, setLocalSupabaseConfig, supabase } from '../supabase/client'
+import { readLocalSupabaseConfig } from '../storage/supabaseConfig'
 import './AuthPage.css'
 
 type AuthPageProps = {
   user: User | null
+  supabaseConfigured: boolean
 }
 
-const AuthPage = ({ user }: AuthPageProps) => {
+const isValidSupabaseUrl = (value: string) => {
+  const trimmed = value.trim()
+  return trimmed.startsWith('https://') && trimmed.includes('.supabase.co')
+}
+
+const AuthPage = ({ user, supabaseConfigured }: AuthPageProps) => {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [verifying, setVerifying] = useState(false)
+  const [activePanel, setActivePanel] = useState<'login' | 'setup'>('login')
+  const [setupUrl, setSetupUrl] = useState('')
+  const [setupAnonKey, setSetupAnonKey] = useState('')
   const navigate = useNavigate()
+
+
+  const openSetupPanel = useCallback(() => {
+    const localConfig = readLocalSupabaseConfig()
+    setSetupUrl(localConfig?.url ?? '')
+    setSetupAnonKey(localConfig?.anonKey ?? '')
+    setActivePanel('setup')
+  }, [])
 
   useEffect(() => {
     if (!supabase) {
@@ -42,6 +60,11 @@ const AuthPage = ({ user }: AuthPageProps) => {
   }, [navigate])
 
   const handleSendOtp = useCallback(async () => {
+    if (!supabaseConfigured) {
+      setError('请先点击“新用户请先完成初始配置”并保存 Supabase 配置。')
+      setStatus(null)
+      return
+    }
     const trimmed = email.trim()
     if (!trimmed) {
       setError('请输入邮箱地址。')
@@ -63,9 +86,14 @@ const AuthPage = ({ user }: AuthPageProps) => {
       return
     }
     setStatus('验证码已发送，请查收邮箱。')
-  }, [email])
+  }, [email, supabaseConfigured])
 
   const handleVerifyOtp = useCallback(async () => {
+    if (!supabaseConfigured) {
+      setError('请先完成初始配置，再验证验证码登录。')
+      setStatus(null)
+      return
+    }
     const trimmedEmail = email.trim()
     const trimmedOtp = otp.trim()
     if (!trimmedEmail) {
@@ -94,7 +122,34 @@ const AuthPage = ({ user }: AuthPageProps) => {
       return
     }
     setStatus('登录成功，欢迎回来。')
-  }, [email, otp])
+  }, [email, otp, supabaseConfigured])
+
+  const handleSaveSetup = useCallback(() => {
+    const trimmedUrl = setupUrl.trim()
+    const trimmedAnonKey = setupAnonKey.trim()
+    if (!isValidSupabaseUrl(trimmedUrl)) {
+      setError('请输入有效的 Supabase Project URL（需以 https:// 开头并包含 .supabase.co）。')
+      setStatus(null)
+      return
+    }
+    if (!trimmedAnonKey) {
+      setError('请输入 Supabase anon public key。')
+      setStatus(null)
+      return
+    }
+    setLocalSupabaseConfig({ url: trimmedUrl, anonKey: trimmedAnonKey })
+    setActivePanel('login')
+    setError(null)
+    setStatus('配置已保存，可继续发送验证码登录。')
+  }, [setupAnonKey, setupUrl])
+
+  const handleClearSetup = useCallback(() => {
+    removeLocalSupabaseConfig()
+    setSetupUrl('')
+    setSetupAnonKey('')
+    setError(null)
+    setStatus('已清除本地 Supabase 配置，请重新配置后再登录。')
+  }, [])
 
   const handleLogout = useCallback(async () => {
     if (!supabase) {
@@ -113,54 +168,102 @@ const AuthPage = ({ user }: AuthPageProps) => {
           <span className="auth-logo-icon" />
         </div>
         <h1 className="ui-title">欢迎使用 Nibble-Chat</h1>
-        <p className="subtitle">请输入邮箱获取验证码并登录</p>
-        <label className="field">
-          <span className="field-label">邮箱地址</span>
-          <div className="input-shell">
-            <span className="input-icon" aria-hidden="true">
-              @
-            </span>
-            <input
-              type="email"
-              placeholder="输入你的邮箱"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-        </label>
-        <button
-          type="button"
-          className="primary"
-          onClick={handleSendOtp}
-          disabled={sending}
-        >
-          {sending ? '发送中...' : '发送验证码 ✨'}
-        </button>
-        <label className="field">
-          <span className="field-label">验证码</span>
-          <div className="input-shell">
-            <span className="input-icon" aria-hidden="true">
-              #
-            </span>
-            <input
-              type="text"
-              placeholder="输入邮箱中的验证码"
-              value={otp}
-              onChange={(event) => setOtp(event.target.value)}
-            />
-          </div>
-        </label>
-        <button
-          type="button"
-          className="primary"
-          onClick={handleVerifyOtp}
-          disabled={verifying}
-        >
-          {verifying ? '验证中...' : '验证并登录 ✨'}
-        </button>
-        <button type="button" className="forgot-link" onClick={handleSendOtp}>
-          Forgot Password?
-        </button>
+        {activePanel === 'login' ? (
+          <>
+            <p className="subtitle">请输入邮箱获取验证码并登录</p>
+            <label className="field">
+              <span className="field-label">邮箱地址</span>
+              <div className="input-shell">
+                <span className="input-icon" aria-hidden="true">
+                  @
+                </span>
+                <input
+                  type="email"
+                  placeholder="输入你的邮箱"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
+            </label>
+            <button
+              type="button"
+              className="primary"
+              onClick={handleSendOtp}
+              disabled={sending || !supabaseConfigured}
+            >
+              {sending ? '发送中...' : '发送验证码 ✨'}
+            </button>
+            <label className="field">
+              <span className="field-label">验证码</span>
+              <div className="input-shell">
+                <span className="input-icon" aria-hidden="true">
+                  #
+                </span>
+                <input
+                  type="text"
+                  placeholder="输入邮箱中的验证码"
+                  value={otp}
+                  onChange={(event) => setOtp(event.target.value)}
+                />
+              </div>
+            </label>
+            <button
+              type="button"
+              className="primary"
+              onClick={handleVerifyOtp}
+              disabled={verifying || !supabaseConfigured}
+            >
+              {verifying ? '验证中...' : '验证并登录 ✨'}
+            </button>
+            <button type="button" className="forgot-link" onClick={handleSendOtp} disabled={!supabaseConfigured}>
+              Forgot Password?
+            </button>
+            <button type="button" className="setup-entry" onClick={openSetupPanel}>
+              新用户请先完成初始配置
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="subtitle">请填写你的 Supabase 项目连接信息</p>
+            <p className="setup-helper">配置仅保存在本地浏览器，不会上传。更换设备需要重新填写。</p>
+            <label className="field">
+              <span className="field-label">Supabase Project URL</span>
+              <div className="input-shell">
+                <input
+                  type="url"
+                  placeholder="https://xxxx.supabase.co"
+                  value={setupUrl}
+                  onChange={(event) => setSetupUrl(event.target.value)}
+                />
+              </div>
+            </label>
+            <label className="field">
+              <span className="field-label">Supabase anon public key</span>
+              <div className="input-shell">
+                <input
+                  type="text"
+                  placeholder="粘贴 anon public key"
+                  value={setupAnonKey}
+                  onChange={(event) => setSetupAnonKey(event.target.value)}
+                />
+              </div>
+            </label>
+            <div className="setup-actions">
+              <button type="button" className="primary" onClick={handleSaveSetup}>
+                Save
+              </button>
+              <button type="button" className="ghost" onClick={handleClearSetup}>
+                Clear
+              </button>
+              <button type="button" className="ghost" onClick={() => setActivePanel('login')}>
+                Back to Login
+              </button>
+            </div>
+          </>
+        )}
+        {!supabaseConfigured && activePanel === 'login' ? (
+          <p className="error">请先完成 Supabase 初始配置，再进行邮箱验证码登录。</p>
+        ) : null}
         {status ? <p className="status">{status}</p> : null}
         {error ? <p className="error">{error}</p> : null}
         <div className="divider" />
