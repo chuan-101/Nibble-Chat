@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
-import { supabase } from '../supabase/client'
+import { hasSupabaseConfig, supabase } from '../supabase/client'
 import './AuthPage.css'
 
 type AuthPageProps = {
@@ -18,6 +18,10 @@ const AuthPage = ({ user }: AuthPageProps) => {
   const navigate = useNavigate()
 
   useEffect(() => {
+    if (!hasSupabaseConfig()) {
+      navigate('/setup', { replace: true })
+      return
+    }
     if (!supabase) {
       return
     }
@@ -48,7 +52,7 @@ const AuthPage = ({ user }: AuthPageProps) => {
       return
     }
     if (!supabase) {
-      setError('尚未配置 Supabase 环境变量。')
+      setError('请先在设置页填写你的 Supabase URL 和 anon key。')
       return
     }
     setSending(true)
@@ -77,7 +81,7 @@ const AuthPage = ({ user }: AuthPageProps) => {
       return
     }
     if (!supabase) {
-      setError('尚未配置 Supabase 环境变量。')
+      setError('请先在设置页填写你的 Supabase URL 和 anon key。')
       return
     }
     setVerifying(true)
@@ -98,7 +102,7 @@ const AuthPage = ({ user }: AuthPageProps) => {
 
   const handleLogout = useCallback(async () => {
     if (!supabase) {
-      setError('尚未配置 Supabase 环境变量。')
+      setError('请先在设置页填写你的 Supabase URL 和 anon key。')
       return
     }
     setError(null)

@@ -1,6 +1,8 @@
 项目简介
 Nibble-Chat 是一个自托管的聊天小工具。前端部署在 GitHub Pages；数据存储与多端同步由用户自行创建的 Supabase 项目提供。本项目不提供中心化服务器，你的数据只在你自己的 Supabase 里。
 
+> 本项目不提供公共后端。请先创建你自己的 Supabase 项目，并在应用内 Setup 页面填写 URL/anon key。
+
 快速开始（Supabase-only）
 
 创建 Supabase 项目
@@ -40,17 +42,13 @@ Project URL（形如 https://xxxx.supabase.co）
 
 anon public key（注意：不要使用 service_role）
 
-配置并部署前端
-本项目部署在 GitHub Pages。你需要在仓库的 GitHub Actions 中配置环境变量：
+部署前端
+本项目可直接部署到 GitHub Pages。默认不依赖仓库 Secrets，终端用户首次打开页面会进入 Setup 页面并填写自己的 Supabase URL/anon key。
 
-VITE_SUPABASE_URL = Project URL
-
-VITE_SUPABASE_ANON_KEY = anon public key
-
-然后触发一次 Pages 重新部署（Re-run workflow 或提交一次更改）。
+可选：开发调试时也支持 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY 作为回退配置。
 
 打开页面并登录
-打开 Pages 地址，输入邮箱 → 获取验证码 → 输入验证码登录。
+打开 Pages 地址，先在 Setup 页面输入你自己的 Supabase URL + anon key，保存后输入邮箱 → 获取验证码 → 输入验证码登录。
 登录后即可开始使用，多端同步数据会保存在你自己的 Supabase。
 
 常见问题

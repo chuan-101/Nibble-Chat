@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
-import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import ChatPage from './pages/ChatPage'
 import AuthPage from './pages/AuthPage'
 import SessionsDrawer from './components/SessionsDrawer'
@@ -40,7 +40,7 @@ import {
   updateRemoteSessionOverride,
   updateRemoteSessionReasoningOverride,
 } from './storage/supabaseSync'
-import { supabase } from './supabase/client'
+import { hasSupabaseConfig, subscribeSupabaseConfigChange, supabase } from './supabase/client'
 import './App.css'
 import SettingsPage from './pages/SettingsPage'
 import MyHomePage from './pages/MyHomePage'
@@ -52,6 +52,7 @@ import RpRoomsPage from './pages/RpRoomsPage'
 import RpRoomPage from './pages/RpRoomPage'
 import HomePage from './pages/HomePage'
 import HomeLayoutSettingsPage from './pages/HomeLayoutSettingsPage'
+import SupabaseSetupPage from './pages/SupabaseSetupPage'
 import {
   resolveSnackSystemOverlay,
   resolveSyzygyPostPrompt,
@@ -171,6 +172,7 @@ const buildRecentExtractionMessages = (
 
 const App = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [sessions, setSessions] = useState<ChatSession[]>(initialSnapshot.sessions)
   const [messages, setMessages] = useState<ChatMessage[]>(initialSnapshot.messages)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -182,6 +184,7 @@ const App = () => {
   const [settingsReady, setSettingsReady] = useState(false)
   const [sessionsReady, setSessionsReady] = useState(false)
   const [activeChatSessionId, setActiveChatSessionId] = useState<string | null>(null)
+  const [supabaseConfigured, setSupabaseConfigured] = useState(() => hasSupabaseConfig())
   const sessionsRef = useRef(sessions)
   const messagesRef = useRef(messages)
   const streamingControllerRef = useRef<AbortController | null>(null)
@@ -261,7 +264,14 @@ const App = () => {
   }, [applySnapshot, user])
 
   useEffect(() => {
+    return subscribeSupabaseConfigChange(() => {
+      setSupabaseConfigured(hasSupabaseConfig())
+    })
+  }, [])
+
+  useEffect(() => {
     if (!supabase) {
+      setUser(null)
       setAuthReady(true)
       return
     }
@@ -276,7 +286,13 @@ const App = () => {
     return () => {
       data.subscription.unsubscribe()
     }
-  }, [])
+  }, [supabaseConfigured])
+
+  useEffect(() => {
+    if (!supabaseConfigured && location.pathname !== '/setup') {
+      navigate('/setup', { replace: true })
+    }
+  }, [location.pathname, navigate, supabaseConfigured])
 
   useEffect(() => {
     if (!authReady) {
@@ -1306,6 +1322,7 @@ const App = () => {
   return (
     <div className="app-shell">
       <Routes>
+        <Route path="/setup" element={<SupabaseSetupPage />} />
         <Route path="/auth" element={<AuthPage user={user} />} />
         <Route
           path="/"
