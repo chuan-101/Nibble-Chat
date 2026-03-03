@@ -229,3 +229,44 @@
   color: #9f8f97;
   margin: 0;
 }
+
+
+.forgot-link:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.setup-entry {
+  border: none;
+  background: transparent;
+  color: #c67a9d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 4px;
+}
+
+.setup-entry:hover {
+  color: #d46f99;
+}
+
+.setup-helper {
+  margin: 0;
+  color: #9f8f97;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.setup-actions .ghost {
+  flex: 1;
+  min-width: 130px;
+}
