@@ -297,7 +297,7 @@ const ChatPage = ({
                       navigate('/rp')
                     }}
                   >
-                    跑跑滚轮
+                    RP房间
                   </button>
                   <button
                     type="button"
