@@ -341,6 +341,18 @@
   gap: 8px;
 }
 
+
+.rp-field-error {
+  margin: -2px 0 0;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+.rp-dashboard-section input.rp-input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
 .rp-model-empty-hint {
   display: flex;
   align-items: center;

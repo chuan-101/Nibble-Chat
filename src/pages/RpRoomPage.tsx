@@ -114,6 +114,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
   const [npcLoading, setNpcLoading] = useState(false)
   const [editingNpcId, setEditingNpcId] = useState<string | null>(null)
   const [npcForm, setNpcForm] = useState<NpcFormState>(createEmptyNpcForm)
+  const [npcNameError, setNpcNameError] = useState<string | null>(null)
   const [savingNpc, setSavingNpc] = useState(false)
   const [pendingDeleteNpc, setPendingDeleteNpc] = useState<RpNpcCard | null>(null)
   const [deletingNpcId, setDeletingNpcId] = useState<string | null>(null)
@@ -813,6 +814,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
 
   const startCreateNpc = () => {
     setEditingNpcId('new')
+    setNpcNameError(null)
     setNpcForm((current) => ({
       ...createEmptyNpcForm(),
       model: enabledModelIds[0] ?? current.model,
@@ -821,6 +823,7 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
 
   const startEditNpc = (card: RpNpcCard) => {
     setEditingNpcId(card.id)
+    setNpcNameError(null)
     setNpcForm({
       displayName: card.displayName,
       systemPrompt: card.systemPrompt ?? '',
@@ -842,9 +845,10 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
     }
     const displayName = npcForm.displayName.trim()
     if (!displayName) {
-      setError('NPC名称不能为空。')
+      setNpcNameError('NPC名称不能为空。')
       return
     }
+    setNpcNameError(null)
     const nextEnabled = npcForm.enabled
     if (nextEnabled) {
       const enabledExcludingCurrent = npcCards.filter((card) => card.enabled && card.id !== editingNpcId).length
@@ -1054,10 +1058,19 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
               <input
                 type="text"
                 value={npcForm.displayName}
-                onChange={(event) => setNpcForm((current) => ({ ...current, displayName: event.target.value }))}
+                onChange={(event) => {
+                  const nextDisplayName = event.target.value
+                  setNpcForm((current) => ({ ...current, displayName: nextDisplayName }))
+                  if (nextDisplayName.trim()) {
+                    setNpcNameError(null)
+                  }
+                }}
                 placeholder="例如：店主阿杰"
+                aria-invalid={npcNameError ? 'true' : 'false'}
+                className={npcNameError ? 'rp-input-error' : undefined}
               />
             </label>
+            {npcNameError ? <p className="rp-field-error">{npcNameError}</p> : null}
             <label>
               System Prompt
               <textarea
@@ -1126,7 +1139,14 @@ const RpRoomPage = ({ user, mode = 'chat', rpReasoningEnabled, rpHighReasoningEn
               启用
             </label>
             <div className="rp-npc-form-actions">
-              <button type="button" className="ghost" onClick={() => setEditingNpcId(null)}>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => {
+                  setEditingNpcId(null)
+                  setNpcNameError(null)
+                }}
+              >
                 取消
               </button>
               <button type="button" className="primary" onClick={() => void handleSaveNpc()} disabled={savingNpc}>
